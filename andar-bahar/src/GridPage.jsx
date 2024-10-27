@@ -92,6 +92,10 @@ const GameGrid = () => {
     // );
 console.log(winPercentages);
     fetchRecentWins();
+    const intervalId = setInterval(fetchRecentWins, 10000);
+
+    // Clear the interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
   return (
     <div className="bg-[#971909] relative">

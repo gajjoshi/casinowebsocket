@@ -96,7 +96,7 @@ const JokerAndCards = () => {
     setRevealedCards((prev) => ({ ...prev, [card]: true }));
     setTimeout(() => {
       setRevealedCards((prev) => ({ ...prev, [card]: false }));
-    }, 2000); // Adjust timing as needed
+    }, 500); // Adjust timing as needed
   };
   useEffect(() => {
     // Fetch the data every 5 seconds

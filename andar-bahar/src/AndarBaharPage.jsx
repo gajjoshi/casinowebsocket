@@ -200,11 +200,11 @@ const AndarBaharSection = ({ setSectionId }) => {
     setRevealedCards((prev) => ({ ...prev, [card]: true }));
     setTimeout(() => {
       setRevealedCards((prev) => ({ ...prev, [card]: false }));
-    }, 2000); // Adjust timing as needed
+    }, 500); // Adjust timing as needed
   };
 
   useEffect(() => {
-    const intervalId = setInterval(fetchCardData, 50000);
+    const intervalId = setInterval(fetchCardData, 500);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -262,13 +262,13 @@ const ScoreAndJokerSection = ({ sectionId }) => {
           setJokerValue(value); // Example: "6H"
         } else {
           // Retry after a delay if value is empty
-          setTimeout(fetchJokerValue, 5000); // Retry every 3 seconds
+          setTimeout(fetchJokerValue, 500); // Retry every 3 seconds
         }
       })
       .catch((error) => {
         // console.error("Error fetching joker value:", error);
         // Retry after a delay in case of error
-        setTimeout(fetchJokerValue, 50000); // Retry every 3 seconds
+        setTimeout(fetchJokerValue, 500); // Retry every 3 seconds
       });
   };
 

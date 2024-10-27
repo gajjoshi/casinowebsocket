@@ -8,6 +8,7 @@ import re
 from .mongo_helper import MongoDBHelper
 from pymongo import MongoClient
 import urllib.parse
+import pymongo
 
 joker=""
 
@@ -563,6 +564,10 @@ def assign_card_to_player(request):
         print("joker is here "+str(joker))
         if card_value == joker:
             result = f"{section_id} wins"
+            mongo_helper.db.wins.insert_one({
+                "section_id": section_id,
+                "result": "win"
+            })
            
         else:
             result = "Card assigned, no match"
@@ -670,6 +675,9 @@ client=get_client()
 db = client['gaj']
 joker_collection = db['joker']
 gaj2_collection = db['gaj2']
+
+
+
 @csrf_exempt
 def reset_collections(request):
     global card_assignment_counter
@@ -684,3 +692,90 @@ def reset_collections(request):
         return JsonResponse({'success': True, 'message': 'Collections reset successfully'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+    
+
+
+@csrf_exempt
+def get_recent_wins(request):
+    try:
+        # Fetch the latest 50 documents from the 'wins' collection
+        recent_wins = list(
+            mongo_helper.db.wins.find({}, {"_id": 0}).sort("_id", pymongo.DESCENDING).limit(50)
+        )
+
+        if not recent_wins:
+            return JsonResponse({"message": "No winning records found"}, status=404)
+
+        # Return the recent wins data
+        return JsonResponse({
+            "success": True,
+            "recent_wins": recent_wins
+        })
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
+current_players = []
+@csrf_exempt
+def player_round(request):
+    global current_players
+    
+    if request.method == 'POST':
+        try:
+            # Get the data from the request
+            data = json.loads(request.body)
+            players = data.get("players", [])
+
+            # Ensure players are from allowed values
+            valid_players = {"page1", "page2", "page3","page4", "page5", "page6"}
+            current_players = [player for player in players if player in valid_players]
+
+            return JsonResponse({"success": True, "message": "Player(s) set for the round", "players": current_players})
+        
+        except json.JSONDecodeError:
+            return JsonResponse({"success": False, "message": "Invalid JSON format"}, status=400)
+
+    elif request.method == 'GET':
+        if current_players:
+            return JsonResponse({"current_players": current_players})
+        else:
+            return JsonResponse({"message": "No player playing"})
+
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+    
+    
+min_bet = None
+max_bet = None
+
+@csrf_exempt
+def set_bet(request):
+    global min_bet, max_bet
+
+    if request.method == 'POST':
+        try:
+            # Parse JSON data from request body
+            data = json.loads(request.body)
+            min_bet = data.get("min_bet")
+            max_bet = data.get("max_bet")
+
+            if min_bet is None or max_bet is None:
+                return JsonResponse({"success": False, "message": "Both min_bet and max_bet are required"}, status=400)
+
+            return JsonResponse({"success": True, "message": "Bets have been set", "min_bet": min_bet, "max_bet": max_bet})
+
+        except json.JSONDecodeError:
+            return JsonResponse({"success": False, "message": "Invalid JSON format"}, status=400)
+
+    return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
+def get_bet(request):
+    global min_bet, max_bet
+
+    if request.method == 'GET':
+        if min_bet is not None and max_bet is not None:
+            return JsonResponse({"min_bet": min_bet, "max_bet": max_bet})
+        else:
+            return JsonResponse({"message": "Bets not set"})
+
+    return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)

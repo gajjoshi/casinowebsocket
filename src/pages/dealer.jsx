@@ -24,33 +24,33 @@ const Dealer = () => {
   const [assignedCardIndices, setAssignedCardIndices] = useState([[], [], []]); // Track assigned card indices
 
 
-  const handleReveal = async (sectionIndex) => {
-    try {
-      const response = await axios.get(`http://localhost:5000/api/reveal/${sectionIndex}`);
-      const revealedCard = response.data.card; // Assuming it returns the card object
+  // const handleReveal = async (sectionIndex) => {
+  //   try {
+  //     const response = await axios.get(`http://localhost:5000/api/reveal/${sectionIndex}`);
+  //     const revealedCard = response.data.card; // Assuming it returns the card object
       
-      console.log(`Revealed card: ${revealedCard.name}`);
+  //     console.log(`Revealed card: ${revealedCard.name}`);
 
-      // Find the card object in the cards array
-      const card = cards.find(c => c.id === revealedCard.id);
-      if (card) {
-        setDisplayedCards(prev => {
-          const newDisplayed = [...prev];
-          newDisplayed[sectionIndex].push(card.id); // Store the card ID instead of the whole card object
-          return newDisplayed;
-        });
+  //     // Find the card object in the cards array
+  //     const card = cards.find(c => c.id === revealedCard.id);
+  //     if (card) {
+  //       setDisplayedCards(prev => {
+  //         const newDisplayed = [...prev];
+  //         newDisplayed[sectionIndex].push(card.id); // Store the card ID instead of the whole card object
+  //         return newDisplayed;
+  //       });
 
-        // Mark the card as revealed
-        setRevealedCards(prev => {
-          const newRevealedCards = [...prev];
-          newRevealedCards[cards.indexOf(card)] = true; // Update the revealed status
-          return newRevealedCards;
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching card:', error);
-    }
-  };
+  //       // Mark the card as revealed
+  //       setRevealedCards(prev => {
+  //         const newRevealedCards = [...prev];
+  //         newRevealedCards[cards.indexOf(card)] = true; // Update the revealed status
+  //         return newRevealedCards;
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching card:', error);
+  //   }
+  // };
 
 
   const reassignCards = async () => {

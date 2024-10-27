@@ -7,6 +7,7 @@ import a from "./assets/a.png";
 import b from "./assets/b.png";
 import screw from "./assets/screw.png";
 import sidelogo from "./assets/sidelogo.png";
+import { useEffect, useState } from 'react';
 
 const GridPage = () => {
   return (
@@ -44,6 +45,54 @@ const Header = () => {
 };
 
 const GameGrid = () => {
+ 
+  const [recentWins, setRecentWins] = useState([]);
+  const [winPercentages, setWinPercentages] = useState({});
+
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchRecentWins = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/myapp/api/get_recent_wins/');
+        const data = await response.json();
+    
+        if (data.success) {
+          const wins = data.recent_wins.reverse().slice(0, 50);
+          setRecentWins(wins);
+    
+          const sectionWins = wins.reduce((acc, win) => {
+            acc[win.section_id] = (acc[win.section_id] || 0) + 1;
+            return acc;
+          }, {});
+    
+          const totalWins = wins.length;
+          const percentages = {};
+    
+          for (const [sectionId, count] of Object.entries(sectionWins)) {
+            percentages[sectionId] = ((count / totalWins) * 100).toFixed(2);
+          }
+    
+          setWinPercentages(percentages); // Store win percentages in state
+          console.log('Win Percentages:', percentages);
+        }
+      } catch (error) {
+        console.error("Error fetching recent wins:", error);
+      }
+    };
+    
+    // Rendering the percentages
+    // return (
+    //   <div>
+    //     {Object.entries(winPercentages).map(([sectionId, percentage]) => (
+    //       <div key={sectionId}>
+    //         Section {sectionId}: {percentage}%
+    //       </div>
+    //     ))}
+    //   </div>
+    // );
+console.log(winPercentages);
+    fetchRecentWins();
+  }, []);
   return (
     <div className="bg-[#971909] relative">
       <img
@@ -58,12 +107,46 @@ const GameGrid = () => {
       />
       <div className="max-w-3xl mx-auto">
         <div className="grid grid-cols-10 p-10 rounded-b-lg">
-          {[...Array(50)].map((_, index) => (
-            <div key={index} className="flex justify-center items-center py-2">
-              <div className="w-16 h-16 bg-[#741003] rounded-full border-2 border-red-900 shadow-md"></div>
-            </div>
-          ))}
+        {[...Array(50)].map((_, index) => (
+                <div key={index} className="flex justify-center items-center py-2">
+                    {recentWins[index] ? (
+                        <div className="w-16 h-16 rounded-full ">
+                            {recentWins[index].section_id === 0 ? (
+                                <img
+                                    src={a}
+                                    alt="Image A"
+                                    className="w-16 "
+                                />
+                            ) : (
+                                <img
+                                    src={b}
+                                    alt="Image B"
+                                    className="w-16 "
+                                />
+                            )}
+                        </div>
+                    ) : (
+                        // Fallback to black circle if there is no recent win for this index
+                        <div className="w-16 h-16 bg-[#741003] rounded-full"></div>
+                    )}
+                </div>
+            ))}
         </div>
+        
+       
+
+
+{/* <div className="p-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {recentWins.map((win, index) => (
+                <div key={index} className="flex flex-col items-center bg-gray-100 p-2 rounded-lg shadow-md">
+                    {win.section_id === 0 ? (
+                        <img src={a} alt="Image A" className="w-16 h-16 object-cover" />
+                    ) : (
+                        <img src={b} alt="Image B" className="w-16 h-16 object-cover" />
+                    )}
+                      </div>
+            ))}
+        </div> */}
       </div>
     </div>
   );

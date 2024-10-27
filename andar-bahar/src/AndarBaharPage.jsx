@@ -12,7 +12,8 @@ import b from "./assets/b.png";
 import ocean7 from "./assets/ocean7.png";
 import Confetti from "react-confetti";
 import CardFlip from "./components/CardFlip";
-
+import BetPopUp from "./BetPopUp";
+import PlayerSelectionPopup from "./PlayerSelectionpopUp";
 const AndarBaharPage = () => {
   const [sectionId, setSectionId] = useState(0);
   return (
@@ -25,9 +26,14 @@ const AndarBaharPage = () => {
     </div>
   );
 };
-
+const allPlayers = ["page1", "page2", "page3", "page4", "page5", "page6"];
 const TopMenu = () => {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [showBet, setShowBet] = useState(false);
+
+  const current_players= ["page1", "page2", "page3", "page4", "page5", "page6"];
+
   const handleReset = async () => {
     try {
       const response = await axios.post(
@@ -43,6 +49,27 @@ const TopMenu = () => {
       console.error("Error resetting collections:", error);
     }
   };
+
+  const [currentPlayers, setCurrentPlayers] = useState([]);
+
+  useEffect(() => {
+    // Fetch current players from the API
+    const fetchCurrentPlayers = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/myapp/api/player-round/");
+        const data = await response.json();
+        // console.log(data.currentPlayers);
+        // Check if current players list is provided, else leave empty
+        setCurrentPlayers(data.current_players );
+        console.log(`current player:${currentPlayers}`)
+      } catch (error) {
+        console.error("Error fetching current players:", error);
+      }
+    };
+
+    fetchCurrentPlayers();
+  }, []);
+  
   return (
     <div className="flex flex-col md:flex-row justify-between  bg-[url('./assets/wood.png')] shadow-lg border-2 border-yellow-600">
       {/* Left Section */}
@@ -65,15 +92,17 @@ const TopMenu = () => {
         </div>
       </div>
 
-      {/* Middle Section with Hats */}
-      <div className="flex py-5 border px-5 gap-3 overflow-x-auto">
-        <img src={redhat} alt="redhat" className="h-16" />
-        <img src={whitehat} alt="whitehat" className="h-16" />
-        <img src={redhat} alt="redhat" className="h-16" />
-        <img src={whitehat} alt="whitehat" className="h-16" />
-        <img src={redhat} alt="redhat" className="h-16" />
-        <img src={whitehat} alt="whitehat" className="h-16" />
-      </div>
+     
+<div className="flex py-5 border px-5 gap-3 overflow-x-auto">
+{allPlayers.map((player, index) => (
+        <img
+          key={index}
+          src={currentPlayers.includes(player) ? whitehat : redhat}
+          alt={currentPlayers.includes(player) ? "white hat" : "red hat"}
+          className="h-16"
+        />
+      ))}
+    </div>
 
       {/* Right Section with Menu and Dropdown */}
       <div className="font-questrial p-4 rounded-lg shadow-lg text-left md:w-1/4 w-full relative">
@@ -116,6 +145,20 @@ const TopMenu = () => {
               >
                 Set Bid Value
               </button>
+              <button
+                className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
+                onClick={() => setShowPopup(true)}
+            >
+                Select Player
+            </button>
+
+            {/* Render Popup Conditionally */}
+            {showBet && <PlayerSelectionPopup setShowBet={setShowBet} />}
+            <button onClick={() => setShowBet(true)} className="bg-blue-500 text-white py-2 px-4 rounded">
+        Change Bets
+      </button>
+
+      {showBet && <BetPopUp setShowBet={setShowBet} />}
             </div>
           )}
         </div>
@@ -161,7 +204,7 @@ const AndarBaharSection = ({ setSectionId }) => {
   };
 
   useEffect(() => {
-    const intervalId = setInterval(fetchCardData, 500);
+    const intervalId = setInterval(fetchCardData, 50000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -219,13 +262,13 @@ const ScoreAndJokerSection = ({ sectionId }) => {
           setJokerValue(value); // Example: "6H"
         } else {
           // Retry after a delay if value is empty
-          setTimeout(fetchJokerValue, 500); // Retry every 3 seconds
+          setTimeout(fetchJokerValue, 5000); // Retry every 3 seconds
         }
       })
       .catch((error) => {
         // console.error("Error fetching joker value:", error);
         // Retry after a delay in case of error
-        setTimeout(fetchJokerValue, 500); // Retry every 3 seconds
+        setTimeout(fetchJokerValue, 50000); // Retry every 3 seconds
       });
   };
 

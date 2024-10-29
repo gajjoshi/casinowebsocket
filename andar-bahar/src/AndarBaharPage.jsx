@@ -14,6 +14,7 @@ import Confetti from "react-confetti";
 import CardFlip from "./components/CardFlip";
 import BetPopUp from "./BetPopUp";
 import PlayerSelectionPopup from "./PlayerSelectionpopUp";
+
 const AndarBaharPage = () => {
   const [sectionId, setSectionId] = useState(0);
   return (
@@ -32,7 +33,14 @@ const TopMenu = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [showBet, setShowBet] = useState(false);
 
-  const current_players= ["page1", "page2", "page3", "page4", "page5", "page6"];
+  const current_players = [
+    "page1",
+    "page2",
+    "page3",
+    "page4",
+    "page5",
+    "page6",
+  ];
 
   const handleReset = async () => {
     try {
@@ -56,12 +64,14 @@ const TopMenu = () => {
     // Fetch current players from the API
     const fetchCurrentPlayers = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/myapp/api/player-round/");
+        const response = await fetch(
+          "http://127.0.0.1:8000/myapp/api/player-round/"
+        );
         const data = await response.json();
         // console.log(data.currentPlayers);
         // Check if current players list is provided, else leave empty
-        setCurrentPlayers(data.current_players );
-        console.log(`current player:${currentPlayers}`)
+        setCurrentPlayers(data.current_players);
+        console.log(`current player:${currentPlayers}`);
       } catch (error) {
         console.error("Error fetching current players:", error);
       }
@@ -69,7 +79,7 @@ const TopMenu = () => {
 
     fetchCurrentPlayers();
   }, []);
-  
+
   return (
     <div className="flex flex-col md:flex-row justify-between  bg-[url('./assets/wood.png')] shadow-lg border-2 border-yellow-600">
       {/* Left Section */}
@@ -92,17 +102,16 @@ const TopMenu = () => {
         </div>
       </div>
 
-     
-<div className="flex py-5 border px-5 gap-3 overflow-x-auto">
-{allPlayers.map((player, index) => (
-        <img
-          key={index}
-          src={currentPlayers.includes(player) ? whitehat : redhat}
-          alt={currentPlayers.includes(player) ? "white hat" : "red hat"}
-          className="h-16"
-        />
-      ))}
-    </div>
+      <div className="flex py-5 border px-5 gap-3 overflow-x-auto">
+        {allPlayers.map((player, index) => (
+          <img
+            key={index}
+            src={currentPlayers?.includes(player) ? whitehat : redhat}
+            alt={currentPlayers?.includes(player) ? "white hat" : "red hat"}
+            className="h-16"
+          />
+        ))}
+      </div>
 
       {/* Right Section with Menu and Dropdown */}
       <div className="font-questrial p-4 rounded-lg shadow-lg text-left md:w-1/4 w-full relative">
@@ -148,17 +157,20 @@ const TopMenu = () => {
               <button
                 className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
                 onClick={() => setShowPopup(true)}
-            >
+              >
                 Select Player
-            </button>
+              </button>
 
-            {/* Render Popup Conditionally */}
-            {showBet && <PlayerSelectionPopup setShowBet={setShowBet} />}
-            <button onClick={() => setShowBet(true)} className="bg-blue-500 text-white py-2 px-4 rounded">
-        Change Bets
-      </button>
+              {/* Render Popup Conditionally */}
+              {showBet && <PlayerSelectionPopup setShowBet={setShowBet} />}
+              <button
+                onClick={() => setShowBet(true)}
+                className="bg-blue-500 text-white py-2 px-4 rounded"
+              >
+                Change Bets
+              </button>
 
-      {showBet && <BetPopUp setShowBet={setShowBet} />}
+              {showBet && <BetPopUp setShowBet={setShowBet} />}
             </div>
           )}
         </div>
@@ -171,6 +183,7 @@ const AndarBaharSection = ({ setSectionId }) => {
   const [section0Cards, setSection0Cards] = useState([]);
   const [section1Cards, setSection1Cards] = useState([]);
   const [revealedCards, setRevealedCards] = useState({});
+  console.log("section0Cards:", section0Cards);
 
   const fetchCardData = async () => {
     try {
@@ -208,6 +221,29 @@ const AndarBaharSection = ({ setSectionId }) => {
     return () => clearInterval(intervalId);
   }, []);
 
+  const renderStackedCards = (cards) => {
+    const cardsToDisplay = cards;
+    return cardsToDisplay.map((card, index) => (
+      <div
+        key={index}
+        style={{
+          position: cards.length > 9 && index < 9 ? "absolute" : "relative",
+          left:
+            cards.length > 9 && index < 9
+              ? index * 1 + 120 + "px"
+              : index * 10 + "px", // Adjust stacking distance as needed
+          zIndex: index,
+        }}
+      >
+        <CardFlip
+          frontImage={`./cards/${card}.png`}
+          isRevealed={revealedCards[card] || false}
+          frontContent={`Card ${card}`}
+        />
+      </div>
+    ));
+  };
+
   return (
     <div className="flex flex-col w-full lg:w-3/4 bg-[#971909] p-4 shadow-lg border-2 border-[#D6AB5D]">
       <div className="flex relative h-1/2 justify-between p-4 border-b-4 border-yellow-600">
@@ -219,7 +255,9 @@ const AndarBaharSection = ({ setSectionId }) => {
             section0Cards.map((card, index) => (
               <CardFlip
                 key={index}
+                index={index}
                 frontImage={`./cards/${card}.png`}
+                list={section0Cards}
                 isRevealed={revealedCards[card] || false}
                 frontContent={`Card ${card}`}
               />
@@ -236,7 +274,9 @@ const AndarBaharSection = ({ setSectionId }) => {
             section1Cards.map((card, index) => (
               <CardFlip
                 key={index}
+                index={index}
                 frontImage={`./cards/${card}.png`}
+                list={section1Cards}
                 isRevealed={revealedCards[card] || false}
                 frontContent={`Card ${card}`}
               />

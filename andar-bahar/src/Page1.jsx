@@ -11,7 +11,7 @@ import sidelogo from "./assets/sidelogo.png";
 import a from "./assets/a.png";
 import b from "./assets/b.png";
 import ocean7 from "./assets/ocean7.png";
-import stat from "./assets/stat.png";
+import stat from "./assets/stat2.png";
 import CardFlip from "./components/CardFlip";
 const Page1 = () => {
   const { width, height } = useWindowSize();
@@ -27,8 +27,6 @@ const Page1 = () => {
     </div>
   );
 };
-
-
 
 const JokerAndCards = () => {
   // State to store the joker card value
@@ -137,7 +135,9 @@ const JokerAndCards = () => {
             section0Cards.map((card, index) => (
               <CardFlip
                 key={index}
+                index={index}
                 frontImage={`./cards/${card}.png`}
+                list={section0Cards}
                 isRevealed={revealedCards[card] || false}
                 frontContent={`Card ${card}`}
               />
@@ -154,7 +154,9 @@ const JokerAndCards = () => {
             section1Cards.map((card, index) => (
               <CardFlip
                 key={index}
+                index={index}
                 frontImage={`./cards/${card}.png`}
+                list={section1Cards}
                 isRevealed={revealedCards[card] || false}
                 frontContent={`Card ${card}`}
               />
@@ -168,8 +170,8 @@ const JokerAndCards = () => {
 const BettingSection = () => {
   const [minBet, setMinBet] = useState(null);
   const [maxBet, setMaxBet] = useState(null);
-  const [newMinBet, setNewMinBet] = useState('');
-  const [newMaxBet, setNewMaxBet] = useState('');
+  const [newMinBet, setNewMinBet] = useState("");
+  const [newMaxBet, setNewMaxBet] = useState("");
 
   // Fetch current bets when the component mounts
   useEffect(() => {
@@ -177,7 +179,7 @@ const BettingSection = () => {
   }, []);
   const getBet = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/myapp/api/get-bet/');
+      const response = await fetch("http://127.0.0.1:8000/myapp/api/get-bet/");
       const data = await response.json();
       if (response.ok) {
         setMinBet(data.min_bet);
@@ -186,7 +188,7 @@ const BettingSection = () => {
         console.log(data.message);
       }
     } catch (error) {
-      console.error('Error fetching bet data:', error);
+      console.error("Error fetching bet data:", error);
     }
   };
   return (
@@ -212,33 +214,35 @@ const Statistics = () => {
     // Fetch data from the API
     const fetchRecentWins = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/myapp/api/get_recent_wins/');
+        const response = await fetch(
+          "http://127.0.0.1:8000/myapp/api/get_recent_wins/"
+        );
         const data = await response.json();
-    
+
         if (data.success) {
           const wins = data.recent_wins.reverse().slice(0, 50);
           setRecentWins(wins);
-    
+
           const sectionWins = wins.reduce((acc, win) => {
             acc[win.section_id] = (acc[win.section_id] || 0) + 1;
             return acc;
           }, {});
-    
+
           const totalWins = wins.length;
           const percentages = {};
-    
+
           for (const [sectionId, count] of Object.entries(sectionWins)) {
             percentages[sectionId] = ((count / totalWins) * 100).toFixed(2);
           }
-    
+
           setWinPercentages(percentages); // Store win percentages in state
-          console.log('Win Percentages:', percentages);
+          console.log("Win Percentages:", percentages);
         }
       } catch (error) {
         console.error("Error fetching recent wins:", error);
       }
     };
-    
+
     // Rendering the percentages
     // return (
     //   <div>
@@ -249,7 +253,7 @@ const Statistics = () => {
     //     ))}
     //   </div>
     // );
-console.log(winPercentages);
+    console.log(winPercentages);
     fetchRecentWins();
   }, []);
   return (
@@ -257,17 +261,20 @@ console.log(winPercentages);
       <div className="text-center font-ramaraja text-4xl font-bold ">
         STATISTICS
       </div>
-      <div className="flex justify-center h-16 items-center space-x-2">
-        {winPercentages[0]}
+      <div className="flex relative justify-center h-16 items-center space-x-2">
+        <span className="absolute text-xs  top-2.5 left-40">
+          {winPercentages[0]}
+        </span>
         <img
           src={stat}
           alt="stats"
-          className="w-[50%]  mt-[-10px]"
+          className="w-[60%]  mt-[-10px]"
           // className="absolute left-1/2  transform -translate-x-1/2  h-24 mx-auto"
         />
-        {winPercentages[1]}
+        <span className="absolute text-xs  top-2.5 right-40">
+          {winPercentages[1]}
+        </span>
       </div>
-     
     </div>
   );
 };

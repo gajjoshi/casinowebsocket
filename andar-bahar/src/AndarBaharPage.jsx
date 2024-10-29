@@ -155,17 +155,19 @@ const TopMenu = () => {
                 Set Bid Value
               </button>
               <button
-                className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
+                className="block w-full text-left px-4 py-2 hover:bg-red-700"
                 onClick={() => setShowPopup(true)}
               >
                 Select Player
               </button>
 
               {/* Render Popup Conditionally */}
-              {showBet && <PlayerSelectionPopup setShowBet={setShowBet} />}
+              {showPopup && (
+                <PlayerSelectionPopup setShowPopup={setShowPopup} />
+              )}
               <button
                 onClick={() => setShowBet(true)}
-                className="bg-blue-500 text-white py-2 px-4 rounded"
+                className="block w-full text-left px-4 py-2 hover:bg-red-700"
               >
                 Change Bets
               </button>
@@ -220,29 +222,6 @@ const AndarBaharSection = ({ setSectionId }) => {
     const intervalId = setInterval(fetchCardData, 500);
     return () => clearInterval(intervalId);
   }, []);
-
-  const renderStackedCards = (cards) => {
-    const cardsToDisplay = cards;
-    return cardsToDisplay.map((card, index) => (
-      <div
-        key={index}
-        style={{
-          position: cards.length > 9 && index < 9 ? "absolute" : "relative",
-          left:
-            cards.length > 9 && index < 9
-              ? index * 1 + 120 + "px"
-              : index * 10 + "px", // Adjust stacking distance as needed
-          zIndex: index,
-        }}
-      >
-        <CardFlip
-          frontImage={`./cards/${card}.png`}
-          isRevealed={revealedCards[card] || false}
-          frontContent={`Card ${card}`}
-        />
-      </div>
-    ));
-  };
 
   return (
     <div className="flex flex-col w-full lg:w-3/4 bg-[#971909] p-4 shadow-lg border-2 border-[#D6AB5D]">

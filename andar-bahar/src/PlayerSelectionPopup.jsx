@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { usePlayerContext } from "./context/PlayerContext";
 
 const PlayerSelectionPopup = ({ setShowPopup }) => {
   const [selectedPlayers, setSelectedPlayers] = useState([]);
@@ -7,16 +8,17 @@ const PlayerSelectionPopup = ({ setShowPopup }) => {
 
   const players = ["page1", "page2", "page3", "page4", "page5", "page6"];
 
-  const fetchCurrentPlayers = async () => {
-    try {
-      const response = await axios.get(
-        "http://127.0.0.1:8000/myapp/api/player-round/"
-      );
-      setCurrentPlayers(response.data.current_players);
-    } catch (error) {
-      console.error("Error fetching current players:", error);
-    }
-  };
+  // const fetchCurrentPlayers = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       "http://127.0.0.1:8000/myapp/api/player-round/"
+  //     );
+  //     setCurrentPlayers(response.data.current_players);
+  //   } catch (error) {
+  //     console.error("Error fetching current players:", error);
+  //   }
+  // };
+  const { fetchCurrentPlayers } = usePlayerContext();
 
   const submitPlayers = async () => {
     try {
@@ -30,6 +32,7 @@ const PlayerSelectionPopup = ({ setShowPopup }) => {
       console.error("Error submitting players:", error);
     }
   };
+  
 
   useEffect(() => {
     fetchCurrentPlayers();

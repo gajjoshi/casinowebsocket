@@ -14,6 +14,7 @@ import Confetti from "react-confetti";
 import CardFlip from "./components/CardFlip";
 import BetPopUp from "./BetPopUp";
 import PlayerSelectionPopup from "./PlayerSelectionpopUp";
+import WinnerModal from "./components/WinnerModal";
 
 const AndarBaharPage = () => {
   const [sectionId, setSectionId] = useState(0);
@@ -185,6 +186,7 @@ const AndarBaharSection = ({ setSectionId }) => {
   const [section0Cards, setSection0Cards] = useState([]);
   const [section1Cards, setSection1Cards] = useState([]);
   const [revealedCards, setRevealedCards] = useState({});
+  const [won, setWon] = useState(-1);
   console.log("section0Cards:", section0Cards);
 
   const fetchCardData = async () => {
@@ -205,6 +207,19 @@ const AndarBaharSection = ({ setSectionId }) => {
           setSection1Cards((prev) => [...prev, newCard]);
           revealCard(newCard, "section1");
         }
+        const result = response.data.result;
+
+        // Check the "result" field and give alerts accordingly
+        if (result === "0 wins") {
+          setWon(0);
+          handleWin();
+        } else if (result === "1 wins") {
+          // alert(" 1 wins");
+          setWon(1);
+          handleWin();
+
+          // Trigger confetti on win
+        }
       }
     } catch (error) {
       console.log(error);
@@ -223,8 +238,19 @@ const AndarBaharSection = ({ setSectionId }) => {
     return () => clearInterval(intervalId);
   }, []);
 
+  const [showModal, setShowModal] = useState(false);
+
+  const handleWin = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
   return (
     <div className="flex flex-col w-full lg:w-3/4 bg-[#971909] p-4 shadow-lg border-2 border-[#D6AB5D]">
+      <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
       <div className="flex relative h-1/2 justify-between p-4 border-b-4 border-yellow-600">
         <div className="text-white font-ramaraja text-6xl mt-10 font-bold mr-4">
           A

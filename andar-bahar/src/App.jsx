@@ -21,9 +21,6 @@ const App = () => {
         <Route path="/player4" element={<Page4 />} />
         <Route path="/player5" element={<Page5 />} />
         <Route path="/player6" element={<Page6 />} />
-
-
-
       </Routes>
     </Router>
   );

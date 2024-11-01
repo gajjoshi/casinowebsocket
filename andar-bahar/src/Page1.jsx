@@ -277,7 +277,7 @@ const Statistics = () => {
       </div> */}
       <div className="flex justify-center items-center overflow-clip -mt-5 space-x-2 bg-brown-800 p-4 rounded-lg">
         {/* A Coin Side */}
-        <div className="flex justify-center items-center w-[70%] relative">
+        <div className="flex justify-center items-center w-[100%] relative">
           <div className="absolute -mt-2 ml-2 left-0 w-16 h-20 overflow-clip">
             <img src={a} alt="a" className="w-16 " />
           </div>

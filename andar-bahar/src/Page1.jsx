@@ -261,7 +261,7 @@ const Statistics = () => {
       <div className="text-center font-ramaraja text-4xl font-bold ">
         STATISTICS
       </div>
-      <div className="flex relative justify-center h-16 items-center space-x-2">
+      {/* <div className="flex relative justify-center h-16 items-center space-x-2">
         <span className="absolute text-xs  top-2.5 left-40">
           {winPercentages[0]}
         </span>
@@ -274,6 +274,39 @@ const Statistics = () => {
         <span className="absolute text-xs  top-2.5 right-40">
           {winPercentages[1]}
         </span>
+      </div> */}
+      <div className="flex justify-center items-center overflow-clip -mt-5 space-x-2 bg-brown-800 p-4 rounded-lg">
+        {/* A Coin Side */}
+        <div className="flex justify-center items-center w-[70%] relative">
+          <div className="absolute -mt-2 ml-2 left-0 w-16 h-20 overflow-clip">
+            <img src={a} alt="a" className="w-16 " />
+          </div>
+          <div
+            style={{ width: `${winPercentages[0] - 20}%` }}
+            className="flex w-[30%] border-4 border-yellow-400  items-center space-x-2 bg-red-700 rounded px-2 py-1"
+          >
+            <div className="flex items-center space-x-1">
+              <span className="text-yellow-400 font-semibold">
+                {Math.round(winPercentages[0])}
+              </span>
+            </div>
+          </div>
+
+          {/* B Coin Side */}
+          <div className="absolute mr-2 -mt-2 right-0 w-16 h-20 pt-1 overflow-clip">
+            <img src={b} alt="b" className="w-16 " />
+          </div>
+          <div
+            style={{ width: `${winPercentages[1] - 20}%` }}
+            className="flex w-[30%] border-4 border-yellow-400 justify-end items-center space-x-2 bg-blue-700 rounded px-2 py-1"
+          >
+            <div className="flex items-center justify-end space-x-1">
+              <div className="text-yellow-400  font-semibold">
+                {Math.round(winPercentages[1])}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

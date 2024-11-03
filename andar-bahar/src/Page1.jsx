@@ -11,29 +11,18 @@ import sidelogo from "./assets/sidelogo.png";
 import a from "./assets/a.png";
 import b from "./assets/b.png";
 import ocean7 from "./assets/ocean7.png";
-import stat from "./assets/stat.png";
+import stat from "./assets/stat2.png";
 import CardFlip from "./components/CardFlip";
-const Page3 = () => {
+const Page1 = () => {
   const { width, height } = useWindowSize();
 
   return (
     <div className=" ">
-      <PlayerHeader />
       <JokerAndCards />
       <div className="flex justify-between   bg-[url('./assets/wood.png')]  shadow-lg border-2 border-yellow-600">
         <BettingSection />
         <Statistics />
         <AndarBaharButtons />
-      </div>
-    </div>
-  );
-};
-
-const PlayerHeader = () => {
-  return (
-    <div className="flex bg-[url('./assets/wood.png')] justify-center items-center py-4">
-      <div className="bg-[#911606] text-white text-2xl font-bold px-8 py-2 rounded-full border-4 font-ramaraja border-yellow-600">
-        Player 1
       </div>
     </div>
   );
@@ -105,7 +94,7 @@ const JokerAndCards = () => {
     setRevealedCards((prev) => ({ ...prev, [card]: true }));
     setTimeout(() => {
       setRevealedCards((prev) => ({ ...prev, [card]: false }));
-    }, 2000); // Adjust timing as needed
+    }, 500); // Adjust timing as needed
   };
   useEffect(() => {
     // Fetch the data every 5 seconds
@@ -146,7 +135,9 @@ const JokerAndCards = () => {
             section0Cards.map((card, index) => (
               <CardFlip
                 key={index}
+                index={index}
                 frontImage={`./cards/${card}.png`}
+                list={section0Cards}
                 isRevealed={revealedCards[card] || false}
                 frontContent={`Card ${card}`}
               />
@@ -163,7 +154,9 @@ const JokerAndCards = () => {
             section1Cards.map((card, index) => (
               <CardFlip
                 key={index}
+                index={index}
                 frontImage={`./cards/${card}.png`}
+                list={section1Cards}
                 isRevealed={revealedCards[card] || false}
                 frontContent={`Card ${card}`}
               />
@@ -175,6 +168,29 @@ const JokerAndCards = () => {
 };
 
 const BettingSection = () => {
+  const [minBet, setMinBet] = useState(null);
+  const [maxBet, setMaxBet] = useState(null);
+  const [newMinBet, setNewMinBet] = useState("");
+  const [newMaxBet, setNewMaxBet] = useState("");
+
+  // Fetch current bets when the component mounts
+  useEffect(() => {
+    getBet();
+  }, []);
+  const getBet = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/myapp/api/get-bet/");
+      const data = await response.json();
+      if (response.ok) {
+        setMinBet(data.min_bet);
+        setMaxBet(data.max_bet);
+      } else {
+        console.log(data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching bet data:", error);
+    }
+  };
   return (
     <div className="font-questrial p-4 rounded-lg  shadow-lg text-left w-1/4 relative">
       <img src={screw} alt="screw" className="absolute top-2 left-2 w-8 h-8" />
@@ -182,8 +198,8 @@ const BettingSection = () => {
       <div className="text-[#f3be39] text-center font-semibold">
         <p className="text-3xl font-bold font-ramaraja ">Bets</p>
         <div className="flex-col items-start justify-start">
-          <p className="text-lg">Max: 20,000</p>
-          <p className="text-lg">Min: 1,000</p>
+          <p className="text-lg">Max:{maxBet}</p>
+          <p className="text-lg">Min: {minBet}</p>
         </div>
       </div>
     </div>
@@ -191,35 +207,107 @@ const BettingSection = () => {
 };
 
 const Statistics = () => {
+  const [recentWins, setRecentWins] = useState([]);
+  const [winPercentages, setWinPercentages] = useState({});
+
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchRecentWins = async () => {
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:8000/myapp/api/get_recent_wins/"
+        );
+        const data = await response.json();
+
+        if (data.success) {
+          const wins = data.recent_wins.reverse().slice(0, 50);
+          setRecentWins(wins);
+
+          const sectionWins = wins.reduce((acc, win) => {
+            acc[win.section_id] = (acc[win.section_id] || 0) + 1;
+            return acc;
+          }, {});
+
+          const totalWins = wins.length;
+          const percentages = {};
+
+          for (const [sectionId, count] of Object.entries(sectionWins)) {
+            percentages[sectionId] = ((count / totalWins) * 100).toFixed(2);
+          }
+
+          setWinPercentages(percentages); // Store win percentages in state
+          console.log("Win Percentages:", percentages);
+        }
+      } catch (error) {
+        console.error("Error fetching recent wins:", error);
+      }
+    };
+
+    // Rendering the percentages
+    // return (
+    //   <div>
+    //     {Object.entries(winPercentages).map(([sectionId, percentage]) => (
+    //       <div key={sectionId}>
+    //         Section {sectionId}: {percentage}%
+    //       </div>
+    //     ))}
+    //   </div>
+    // );
+    console.log(winPercentages);
+    fetchRecentWins();
+  }, []);
   return (
     <div className="  text-[#f3be39] p-4 border-2 border-gray-400 shadow-lg w-2/4">
       <div className="text-center font-ramaraja text-4xl font-bold ">
         STATISTICS
       </div>
-      <div className="flex justify-center h-16 items-center space-x-2">
+      {/* <div className="flex relative justify-center h-16 items-center space-x-2">
+        <span className="absolute text-xs  top-2.5 left-40">
+          {winPercentages[0]}
+        </span>
         <img
           src={stat}
-          alt="stat"
-          className="w-[50%]  mt-[-10px]"
+          alt="stats"
+          className="w-[60%]  mt-[-10px]"
           // className="absolute left-1/2  transform -translate-x-1/2  h-24 mx-auto"
         />
+        <span className="absolute text-xs  top-2.5 right-40">
+          {winPercentages[1]}
+        </span>
+      </div> */}
+      <div className="flex justify-center items-center overflow-clip -mt-5 space-x-2 bg-brown-800 p-4 rounded-lg">
+        {/* A Coin Side */}
+        <div className="flex justify-center items-center w-[100%] relative">
+          <div className="absolute -mt-2 ml-2 left-0 w-16 h-20 overflow-clip">
+            <img src={a} alt="a" className="w-16 " />
+          </div>
+          <div
+            style={{ width: `${winPercentages[0] - 20}%` }}
+            className="flex w-[30%] border-4 border-yellow-400  items-center space-x-2 bg-red-700 rounded px-2 py-1"
+          >
+            <div className="flex items-center space-x-1">
+              <span className="text-yellow-400 font-semibold">
+                {Math.round(winPercentages[0])}
+              </span>
+            </div>
+          </div>
+
+          {/* B Coin Side */}
+          <div className="absolute mr-2 -mt-2 right-0 w-16 h-20 pt-1 overflow-clip">
+            <img src={b} alt="b" className="w-16 " />
+          </div>
+          <div
+            style={{ width: `${winPercentages[1] - 20}%` }}
+            className="flex w-[30%] border-4 border-yellow-400 justify-end items-center space-x-2 bg-blue-700 rounded px-2 py-1"
+          >
+            <div className="flex items-center justify-end space-x-1">
+              <div className="text-yellow-400  font-semibold">
+                {Math.round(winPercentages[1])}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      {/* <div className="flex justify-center items-center space-x-2">
-          <div className="bg-red-700 text-white rounded-full w-12 h-12 flex justify-center items-center text-2xl font-bold shadow-md">
-            A
-          </div>
-          <div className="flex items-center">
-            <div className="bg-red-600 h-8 w-24 flex items-center rounded-l-full">
-              <div className="bg-yellow-400 h-full w-1/2"></div>
-            </div>
-            <div className="bg-blue-600 h-8 w-24 flex items-center rounded-r-full">
-              <div className="bg-blue-400 h-full w-1/2"></div>
-            </div>
-          </div>
-          <div className="bg-blue-700 text-white rounded-full w-12 h-12 flex justify-center items-center text-2xl font-bold shadow-md">
-            B
-          </div>
-        </div> */}
     </div>
   );
 };
@@ -246,4 +334,4 @@ const AndarBaharButtons = () => {
   );
 };
 
-export default Page3;
+export default Page1;

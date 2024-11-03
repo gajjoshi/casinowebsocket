@@ -18,5 +18,9 @@ urlpatterns = [
     path('api/assign_card_to_section_A/', views.assign_card_to_section_A, name='assign_card_to_section_A'),
     path('api/get_joker_value/', views.get_joker_value, name='get_joker_value'),
     path('api/assign_card_to_player/', views.assign_card_to_player, name='assign_card_to_player'),
+    path('api/get_recent_wins/', views.get_recent_wins, name='get_recent_wins'),
+    path('api/player-round/', views.player_round, name='player_round'),
+    path('api/set-bet/', views.set_bet, name='set_bet'),
+    path('api/get-bet/', views.get_bet, name='get_bet'),
 
 ]

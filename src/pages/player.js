@@ -14,37 +14,37 @@ const Dealer = () => {
     const [jokerCard, setJokerCard] = useState(null);
 
     // // Function to fetch card state every 5 seconds
-    // const fetchCardState = async () => {
-    //     setIsLoading(true);  // Set loading to true at the start of the request
-    //     try {
-    //         const response = await fetch('http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/', {
-    //             method: 'POST',  // Verify that the API expects a POST request
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             }
-    //         });
+    const fetchCardState = async () => {
+        setIsLoading(true);  // Set loading to true at the start of the request
+        try {
+            const response = await fetch('http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/', {
+                method: 'POST',  // Verify that the API expects a POST request
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
     
-    //         // Check if the request was successful
-    //         if (!response.ok) {
-    //             throw new Error(`HTTP error! status: ${response.status}`);
-    //         }
+            // Check if the request was successful
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
     
-    //         const result = await response.json();  // Parse the JSON from the response
+            const result = await response.json();  // Parse the JSON from the response
     
-    //         // Assuming the API returns `success: true` in the result
-    //         if (result.success) {
-    //             setData(result.state);  // Set the full card state (use `result.state`)
-    //             setJokerCard(result.state.jokerCard);  // Set the joker card
-    //             console.log('Updated Joker Card:', result.state.jokerCard);  // Log the joker card after updating it
-    //         } else {
-    //             setError(result.message || 'Something went wrong!');
-    //         }
-    //     } catch (err) {
-    //         setError(err.message);
-    //     } finally {
-    //         setIsLoading(false);  // Ensure loading is set to false in all cases
-    //     }
-    // };
+            // Assuming the API returns `success: true` in the result
+            if (result.success) {
+                setData(result.state);  // Set the full card state (use `result.state`)
+                setJokerCard(result.state.jokerCard);  // Set the joker card
+                console.log('Updated Joker Card:', result.state.jokerCard);  // Log the joker card after updating it
+            } else {
+                setError(result.message || 'Something went wrong!');
+            }
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);  // Ensure loading is set to false in all cases
+        }
+    };
     
 
     // Use effect to poll the API every 5 seconds

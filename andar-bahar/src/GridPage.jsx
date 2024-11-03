@@ -2,24 +2,30 @@ import React from "react";
 import wood from "./assets/wood.png";
 import ocean7 from "./assets/ocean7.png";
 import logo from "./assets/logo.png";
-import stat from "./assets/stat.png";
+import stat from "./assets/stat2.png";
 import a from "./assets/a.png";
 import b from "./assets/b.png";
 import screw from "./assets/screw.png";
 import sidelogo from "./assets/sidelogo.png";
+import { useEffect, useState } from "react";
 
 const GridPage = () => {
+  const [winPercentages, setWinPercentages] = useState({});
+
   return (
     <>
       <div className="bg-yellow-400 px-2 pt-1 text-center">
         <div className="bg-yellow-200 px-4 pt-2 text-center shadow-lg rounded-lg">
           <Header />
-          <GameGrid />
+          <GameGrid
+            winPercentages={winPercentages}
+            setWinPercentages={setWinPercentages}
+          />
         </div>
       </div>
       <div className="flex justify-between bg-[url('./assets/wood.png')]  shadow-lg border-2 border-yellow-600">
         <BettingSection />
-        <Statistics />
+        <Statistics winPercentages={winPercentages} />
         <AndarBaharButtons />
       </div>
       <Footer />
@@ -43,7 +49,59 @@ const Header = () => {
   );
 };
 
-const GameGrid = () => {
+const GameGrid = ({ winPercentages, setWinPercentages }) => {
+  const [recentWins, setRecentWins] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchRecentWins = async () => {
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:8000/myapp/api/get_recent_wins/"
+        );
+        const data = await response.json();
+
+        if (data.success) {
+          const wins = data.recent_wins.reverse().slice(0, 50);
+          setRecentWins(wins);
+
+          const sectionWins = wins.reduce((acc, win) => {
+            acc[win.section_id] = (acc[win.section_id] || 0) + 1;
+            return acc;
+          }, {});
+
+          const totalWins = wins.length;
+          const percentages = {};
+
+          for (const [sectionId, count] of Object.entries(sectionWins)) {
+            percentages[sectionId] = ((count / totalWins) * 100).toFixed(2);
+          }
+
+          setWinPercentages(percentages); // Store win percentages in state
+          console.log("Win Percentages:", percentages);
+        }
+      } catch (error) {
+        console.error("Error fetching recent wins:", error);
+      }
+    };
+
+    // Rendering the percentages
+    // return (
+    //   <div>
+    //     {Object.entries(winPercentages).map(([sectionId, percentage]) => (
+    //       <div key={sectionId}>
+    //         Section {sectionId}: {percentage}%
+    //       </div>
+    //     ))}
+    //   </div>
+    // );
+    console.log(winPercentages);
+    fetchRecentWins();
+    const intervalId = setInterval(fetchRecentWins, 10000);
+
+    // Clear the interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []);
   return (
     <div className="bg-[#971909] relative">
       <img
@@ -60,10 +118,33 @@ const GameGrid = () => {
         <div className="grid grid-cols-10 p-10 rounded-b-lg">
           {[...Array(50)].map((_, index) => (
             <div key={index} className="flex justify-center items-center py-2">
-              <div className="w-16 h-16 bg-[#741003] rounded-full border-2 border-red-900 shadow-md"></div>
+              {recentWins[index] ? (
+                <div className="w-16 h-16 rounded-full ">
+                  {recentWins[index].section_id === 0 ? (
+                    <img src={a} alt="Image A" className="w-16 -mt-3.5" />
+                  ) : (
+                    <img src={b} alt="Image B" className="w-16 -mt-2.5" />
+                  )}
+                </div>
+              ) : (
+                // Fallback to black circle if there is no recent win for this index
+                <div className="w-16 h-16 bg-[#741003] rounded-full"></div>
+              )}
             </div>
           ))}
         </div>
+
+        {/* <div className="p-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {recentWins.map((win, index) => (
+                <div key={index} className="flex flex-col items-center bg-gray-100 p-2 rounded-lg shadow-md">
+                    {win.section_id === 0 ? (
+                        <img src={a} alt="Image A" className="w-16 h-16 object-cover" />
+                    ) : (
+                        <img src={b} alt="Image B" className="w-16 h-16 object-cover" />
+                    )}
+                      </div>
+            ))}
+        </div> */}
       </div>
     </div>
   );
@@ -85,36 +166,59 @@ const BettingSection = () => {
   );
 };
 
-const Statistics = () => {
+const Statistics = ({ winPercentages }) => {
   return (
     <div className="  text-[#f3be39] p-4 border-2 border-gray-400 shadow-lg w-2/4">
       <div className="text-center font-ramaraja text-4xl font-bold ">
         STATISTICS
       </div>
-      <div className="flex justify-center h-16 items-center space-x-2">
+      {/* <div className="flex relative justify-center h-16 items-center space-x-2">
+        <span className="absolute text-xs  top-2 left-40">
+          {winPercentages[1]}
+        </span>
         <img
           src={stat}
           alt="stat"
-          className="w-[50%]  mt-[-10px]"
+          className="w-[70%]  mt-[-10px]"
           // className="absolute left-1/2  transform -translate-x-1/2  h-24 mx-auto"
         />
-      </div>
-      {/* <div className="flex justify-center items-center space-x-2">
-        <div className="bg-red-700 text-white rounded-full w-12 h-12 flex justify-center items-center text-2xl font-bold shadow-md">
-          A
-        </div>
-        <div className="flex items-center">
-          <div className="bg-red-600 h-8 w-24 flex items-center rounded-l-full">
-            <div className="bg-yellow-400 h-full w-1/2"></div>
-          </div>
-          <div className="bg-blue-600 h-8 w-24 flex items-center rounded-r-full">
-            <div className="bg-blue-400 h-full w-1/2"></div>
-          </div>
-        </div>
-        <div className="bg-blue-700 text-white rounded-full w-12 h-12 flex justify-center items-center text-2xl font-bold shadow-md">
-          B
-        </div>
+        <span className="absolute text-xs  top-2 right-40">
+          {winPercentages[1]}
+        </span>
       </div> */}
+      <div className="flex justify-center items-center overflow-clip -mt-5 space-x-2 bg-brown-800 p-4 rounded-lg">
+        {/* A Coin Side */}
+        <div className="flex justify-center items-center w-[70%] relative">
+          <div className="absolute -mt-2 ml-2 left-0 w-16 h-20 overflow-clip">
+            <img src={a} alt="a" className="w-16 " />
+          </div>
+          <div
+            style={{ width: `${winPercentages[0] - 20}%` }}
+            className="flex w-[30%] border-4 border-yellow-400  items-center space-x-2 bg-red-700 rounded px-2 py-1"
+          >
+            <div className="flex items-center space-x-1">
+              <span className="text-yellow-400 font-semibold">
+                {Math.round(winPercentages[0])}
+              </span>
+            </div>
+          </div>
+
+          {/* B Coin Side */}
+          <div className="absolute mr-2 -mt-2 right-0 w-16 h-20 pt-1 overflow-clip">
+            <img src={b} alt="b" className="w-16 " />
+          </div>
+          <div
+            style={{ width: `${winPercentages[1] - 20}%` }}
+            className="flex w-[30%] border-4 border-yellow-400 justify-end items-center space-x-2 bg-blue-700 rounded px-2 py-1"
+          >
+            <div className="flex items-center justify-end space-x-1">
+              <div className="text-yellow-400  font-semibold">
+                {Math.round(winPercentages[1])}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import screw from "./assets/screw.png";
@@ -12,22 +12,40 @@ import b from "./assets/b.png";
 import ocean7 from "./assets/ocean7.png";
 import Confetti from "react-confetti";
 import CardFlip from "./components/CardFlip";
+import BetPopUp from "./BetPopUp";
+import PlayerSelectionPopup from "./PlayerSelectionpopUp";
+import WinnerModal from "./components/WinnerModal";
+import { useFlip } from "./context/FlipContext";
 
 const AndarBaharPage = () => {
+  const { toggleReveal } = useFlip();
   const [sectionId, setSectionId] = useState(0);
   return (
     <div className="min-h-screen bg-[#450A03] ">
       <TopMenu />
       <div className="flex flex-col lg:flex-row justify-between p-2">
         <AndarBaharSection setSectionId={setSectionId} />
+
         <ScoreAndJokerSection sectionId={sectionId} />
       </div>
     </div>
   );
 };
-
+const allPlayers = ["page1", "page2", "page3", "page4", "page5", "page6"];
 const TopMenu = () => {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [showBet, setShowBet] = useState(false);
+
+  const current_players = [
+    "page1",
+    "page2",
+    "page3",
+    "page4",
+    "page5",
+    "page6",
+  ];
+
   const handleReset = async () => {
     try {
       const response = await axios.post(
@@ -43,6 +61,29 @@ const TopMenu = () => {
       console.error("Error resetting collections:", error);
     }
   };
+
+  const [currentPlayers, setCurrentPlayers] = useState([]);
+
+  useEffect(() => {
+    // Fetch current players from the API
+    const fetchCurrentPlayers = async () => {
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:8000/myapp/api/player-round/"
+        );
+        const data = await response.json();
+        // console.log(data.currentPlayers);
+        // Check if current players list is provided, else leave empty
+        setCurrentPlayers(data.current_players);
+        console.log(`current player:${currentPlayers}`);
+      } catch (error) {
+        console.error("Error fetching current players:", error);
+      }
+    };
+
+    fetchCurrentPlayers();
+  }, []);
+
   return (
     <div className="flex flex-col md:flex-row justify-between  bg-[url('./assets/wood.png')] shadow-lg border-2 border-yellow-600">
       {/* Left Section */}
@@ -65,14 +106,15 @@ const TopMenu = () => {
         </div>
       </div>
 
-      {/* Middle Section with Hats */}
       <div className="flex py-5 border px-5 gap-3 overflow-x-auto">
-        <img src={redhat} alt="redhat" className="h-16" />
-        <img src={whitehat} alt="whitehat" className="h-16" />
-        <img src={redhat} alt="redhat" className="h-16" />
-        <img src={whitehat} alt="whitehat" className="h-16" />
-        <img src={redhat} alt="redhat" className="h-16" />
-        <img src={whitehat} alt="whitehat" className="h-16" />
+        {allPlayers.map((player, index) => (
+          <img
+            key={index}
+            src={currentPlayers?.includes(player) ? whitehat : redhat}
+            alt={currentPlayers?.includes(player) ? "white hat" : "red hat"}
+            className="h-16"
+          />
+        ))}
       </div>
 
       {/* Right Section with Menu and Dropdown */}
@@ -116,6 +158,25 @@ const TopMenu = () => {
               >
                 Set Bid Value
               </button>
+              <button
+                className="block w-full text-left px-4 py-2 hover:bg-red-700"
+                onClick={() => setShowPopup(true)}
+              >
+                Select Player
+              </button>
+
+              {/* Render Popup Conditionally */}
+              {showPopup && (
+                <PlayerSelectionPopup setShowPopup={setShowPopup} />
+              )}
+              <button
+                onClick={() => setShowBet(true)}
+                className="block w-full text-left px-4 py-2 hover:bg-red-700"
+              >
+                Change Bets
+              </button>
+
+              {showBet && <BetPopUp setShowBet={setShowBet} />}
             </div>
           )}
         </div>
@@ -128,6 +189,8 @@ const AndarBaharSection = ({ setSectionId }) => {
   const [section0Cards, setSection0Cards] = useState([]);
   const [section1Cards, setSection1Cards] = useState([]);
   const [revealedCards, setRevealedCards] = useState({});
+  const [won, setWon] = useState(-1);
+  console.log("section0Cards:", section0Cards);
 
   const fetchCardData = async () => {
     try {
@@ -147,6 +210,19 @@ const AndarBaharSection = ({ setSectionId }) => {
           setSection1Cards((prev) => [...prev, newCard]);
           revealCard(newCard, "section1");
         }
+        const result = response.data.result;
+
+        // Check the "result" field and give alerts accordingly
+        if (result === "0 wins") {
+          setWon(0);
+          handleWin();
+        } else if (result === "1 wins") {
+          // alert(" 1 wins");
+          setWon(1);
+          handleWin();
+
+          // Trigger confetti on win
+        }
       }
     } catch (error) {
       console.log(error);
@@ -157,7 +233,7 @@ const AndarBaharSection = ({ setSectionId }) => {
     setRevealedCards((prev) => ({ ...prev, [card]: true }));
     setTimeout(() => {
       setRevealedCards((prev) => ({ ...prev, [card]: false }));
-    }, 2000); // Adjust timing as needed
+    }, 500); // Adjust timing as needed
   };
 
   useEffect(() => {
@@ -165,8 +241,19 @@ const AndarBaharSection = ({ setSectionId }) => {
     return () => clearInterval(intervalId);
   }, []);
 
+  const [showModal, setShowModal] = useState(false);
+
+  const handleWin = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
   return (
     <div className="flex flex-col w-full lg:w-3/4 bg-[#971909] p-4 shadow-lg border-2 border-[#D6AB5D]">
+      <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
       <div className="flex relative h-1/2 justify-between p-4 border-b-4 border-yellow-600">
         <div className="text-white font-ramaraja text-6xl mt-10 font-bold mr-4">
           A
@@ -176,7 +263,9 @@ const AndarBaharSection = ({ setSectionId }) => {
             section0Cards.map((card, index) => (
               <CardFlip
                 key={index}
+                index={index}
                 frontImage={`./cards/${card}.png`}
+                list={section0Cards}
                 isRevealed={revealedCards[card] || false}
                 frontContent={`Card ${card}`}
               />
@@ -193,7 +282,9 @@ const AndarBaharSection = ({ setSectionId }) => {
             section1Cards.map((card, index) => (
               <CardFlip
                 key={index}
+                index={index}
                 frontImage={`./cards/${card}.png`}
+                list={section1Cards}
                 isRevealed={revealedCards[card] || false}
                 frontContent={`Card ${card}`}
               />
@@ -206,6 +297,7 @@ const AndarBaharSection = ({ setSectionId }) => {
 
 const ScoreAndJokerSection = ({ sectionId }) => {
   const [jokerValue, setJokerValue] = useState(null);
+  const { toggleReveal } = useFlip();
 
   // Function to fetch the joker value from the backend
   const fetchJokerValue = () => {
@@ -333,6 +425,12 @@ const ScoreAndJokerSection = ({ sectionId }) => {
           </div>
         </div>
       </div>
+      <button
+        onClick={() => toggleReveal()}
+        className="m-2 p-2 bg-[#971909]  text-white rounded"
+      >
+        Flip Cards
+      </button>
     </div>
   );
 };

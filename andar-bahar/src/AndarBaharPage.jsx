@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import screw from "./assets/screw.png";
@@ -15,14 +15,17 @@ import CardFlip from "./components/CardFlip";
 import BetPopUp from "./BetPopUp";
 import PlayerSelectionPopup from "./PlayerSelectionpopUp";
 import WinnerModal from "./components/WinnerModal";
+import { useFlip } from "./context/FlipContext";
 
 const AndarBaharPage = () => {
+  const { toggleReveal } = useFlip();
   const [sectionId, setSectionId] = useState(0);
   return (
     <div className="min-h-screen bg-[#450A03] ">
       <TopMenu />
       <div className="flex flex-col lg:flex-row justify-between p-2">
         <AndarBaharSection setSectionId={setSectionId} />
+
         <ScoreAndJokerSection sectionId={sectionId} />
       </div>
     </div>
@@ -294,6 +297,7 @@ const AndarBaharSection = ({ setSectionId }) => {
 
 const ScoreAndJokerSection = ({ sectionId }) => {
   const [jokerValue, setJokerValue] = useState(null);
+  const { toggleReveal } = useFlip();
 
   // Function to fetch the joker value from the backend
   const fetchJokerValue = () => {
@@ -421,6 +425,12 @@ const ScoreAndJokerSection = ({ sectionId }) => {
           </div>
         </div>
       </div>
+      <button
+        onClick={() => toggleReveal()}
+        className="m-2 p-2 bg-[#971909]  text-white rounded"
+      >
+        Flip Cards
+      </button>
     </div>
   );
 };

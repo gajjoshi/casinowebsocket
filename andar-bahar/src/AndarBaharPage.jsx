@@ -20,13 +20,22 @@ import { useFlip } from "./context/FlipContext";
 const AndarBaharPage = () => {
   const { toggleReveal } = useFlip();
   const [sectionId, setSectionId] = useState(0);
+  const [section0Cards, setSection0Cards] = useState([]);
+  const [section1Cards, setSection1Cards] = useState([]);
+
   return (
     <div className="min-h-screen bg-[#450A03] ">
       <TopMenu />
       <div className="flex flex-col lg:flex-row justify-between p-2">
-        <AndarBaharSection setSectionId={setSectionId} />
+        <AndarBaharSection setSectionId={setSectionId}
+          section0Cards={section0Cards}
+          setSection0Cards={setSection0Cards}
+          section1Cards={section1Cards}
+          setSection1Cards={setSection1Cards} />
 
-        <ScoreAndJokerSection sectionId={sectionId} />
+        <ScoreAndJokerSection  sectionId={sectionId}
+          section0Cards={section0Cards}
+          section1Cards={section1Cards}/>
       </div>
     </div>
   );
@@ -185,17 +194,23 @@ const TopMenu = () => {
   );
 };
 
-const AndarBaharSection = ({ setSectionId }) => {
-  const [section0Cards, setSection0Cards] = useState([]);
-  const [section1Cards, setSection1Cards] = useState([]);
+const AndarBaharSection = ({
+  setSectionId,
+  section0Cards,
+  setSection0Cards,
+  section1Cards,
+  setSection1Cards
+}) => {
+  // const [section0Cards, setSection0Cards] = useState([]);
+  // const [section1Cards, setSection1Cards] = useState([]);
   const [revealedCards, setRevealedCards] = useState({});
   const [won, setWon] = useState(-1);
-  console.log("section0Cards:", section0Cards);
+  // console.log("section0Cards:", section0Cards);
 
   const fetchCardData = async () => {
     try {
       const response = await axios.get(
-        "http://127.0.0.1:8000/myapp/api/assign_card_to_player/"
+        "http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/"
       );
       if (response.data) {
         const newCard = response.data.value;
@@ -295,7 +310,7 @@ const AndarBaharSection = ({ setSectionId }) => {
   );
 };
 
-const ScoreAndJokerSection = ({ sectionId }) => {
+const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards }) => {
   const [jokerValue, setJokerValue] = useState(null);
   const { toggleReveal } = useFlip();
 
@@ -388,7 +403,7 @@ const ScoreAndJokerSection = ({ sectionId }) => {
             <div className="w-12 h-16 overflow-clip">
               <img src={a} alt="a" className="w-16 " />
             </div>
-            <span className="text-black text-5xl">1</span>
+            <span className="text-black text-5xl">{section0Cards.length}</span>
           </div>
         </div>
         <div
@@ -400,7 +415,7 @@ const ScoreAndJokerSection = ({ sectionId }) => {
             <div className="w-12 h-16 pt-1 overflow-clip">
               <img src={b} alt="b" className="w-16 " />
             </div>
-            <span className="text-black text-5xl">1</span>
+            <span className="text-black text-5xl">{section1Cards.length}</span>
           </div>
         </div>
       </div>
@@ -425,12 +440,12 @@ const ScoreAndJokerSection = ({ sectionId }) => {
           </div>
         </div>
       </div>
-      <button
+      {/* <button
         onClick={() => toggleReveal()}
         className="m-2 p-2 bg-[#971909]  text-white rounded"
       >
         Flip Cards
-      </button>
+      </button> */}
     </div>
   );
 };

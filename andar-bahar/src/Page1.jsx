@@ -107,10 +107,11 @@ const JokerAndCards = () => {
   return (
     <div className="bg-[#8F1504] p-4 border-8 border-yellow-600">
       {/* Joker Section */}
-      <div className="flex  items-center border-b-4 border-yellow-600 pb-4 mb-4">
+      <div className="flex  items-center justify-center mx-auto  border-b-4 border-yellow-600 pb-4 mb-4">
         <div className="text-white ml-2 font-ramaraja text-4xl font-bold">
           JOKER
         </div>
+
         <div className="w-40 h-60 border-dashed ml-5 border-2 border-yellow-600 bg-[#450A0366] rounded-lg flex justify-center items-center">
           {jokerValue ? (
             <img
@@ -124,6 +125,7 @@ const JokerAndCards = () => {
             </div>
           )}
         </div>
+        
       </div>
 
       <div className="flex relative h-1/2 justify-between p-4 border-b-4 border-yellow-600">
@@ -138,7 +140,7 @@ const JokerAndCards = () => {
                 index={index}
                 frontImage={`./cards/${card}.png`}
                 list={section0Cards}
-                isRevealed={revealedCards[card] || false}
+                isRevealed={revealedCards[card] || true}
                 frontContent={`Card ${card}`}
               />
             ))}
@@ -157,7 +159,7 @@ const JokerAndCards = () => {
                 index={index}
                 frontImage={`./cards/${card}.png`}
                 list={section1Cards}
-                isRevealed={revealedCards[card] || false}
+                isRevealed={revealedCards[card] || true}
                 frontContent={`Card ${card}`}
               />
             ))}

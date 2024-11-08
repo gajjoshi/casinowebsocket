@@ -10,7 +10,7 @@ createRoot(document.getElementById("root")).render(
     <PlayerProvider>
       <FlipProvider>
         <App />
-      </FlipProvider>
+        </FlipProvider>
     </PlayerProvider>
   </StrictMode>
 );

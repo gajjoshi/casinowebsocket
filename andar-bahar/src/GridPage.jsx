@@ -36,11 +36,11 @@ const GridPage = () => {
 const Header = () => {
   return (
     <div className="flex justify-between items-center py-5 px-10  bg-[url('./assets/wood.png')] relative font-questrial">
-      <img src={ocean7} alt="ocean7" className="w-24 h-24" />
+      <img src={ocean7} alt="ocean7" className="w-12 h-12 p-1" />
       <img
         src={logo}
         alt="logo"
-        className="absolute left-1/2 mt-5 transform -translate-x-1/2 h-40"
+        className="absolute left-1/2 mt-2 transform -translate-x-1/2 h-40"
       />
       <div className="text-3xl  text-yellow-300">
         Table <br></br> 1234
@@ -62,7 +62,7 @@ const GameGrid = ({ winPercentages, setWinPercentages }) => {
         const data = await response.json();
 
         if (data.success) {
-          const wins = data.recent_wins.reverse().slice(0, 50);
+          const wins = data.recent_wins.reverse().slice(0, 70);
           setRecentWins(wins);
 
           const sectionWins = wins.reduce((acc, win) => {
@@ -78,33 +78,83 @@ const GameGrid = ({ winPercentages, setWinPercentages }) => {
           }
 
           setWinPercentages(percentages); // Store win percentages in state
-          console.log("Win Percentages:", percentages);
         }
       } catch (error) {
         console.error("Error fetching recent wins:", error);
       }
     };
 
-    // Rendering the percentages
-    // return (
-    //   <div>
-    //     {Object.entries(winPercentages).map(([sectionId, percentage]) => (
-    //       <div key={sectionId}>
-    //         Section {sectionId}: {percentage}%
-    //       </div>
-    //     ))}
-    //   </div>
-    // );
-    console.log(winPercentages);
     fetchRecentWins();
     const intervalId = setInterval(fetchRecentWins, 10000);
 
-    // Clear the interval on component unmount
     return () => clearInterval(intervalId);
   }, []);
+
+  // Function to group consecutive tokens
+  const groupConsecutiveTokens = (wins) => {
+    const groups = [];
+    let currentGroup = [];
+    let prevSectionId = null;
+
+    wins.forEach((win) => {
+      if (win.section_id === prevSectionId || prevSectionId === null) {
+        // Same section_id, add to current group
+        currentGroup.push(win);
+      } else {
+        // Different section_id, push current group and start a new one
+        groups.push(currentGroup);
+        currentGroup = [win];
+      }
+      prevSectionId = win.section_id;
+    });
+
+    // Push the last group if not empty
+    if (currentGroup.length) {
+      groups.push(currentGroup);
+    }
+
+    return groups;
+  };
+
+  const renderGrid = () => {
+    const groups = groupConsecutiveTokens(recentWins);
+    let colIndex = 0;
+
+    return groups.map((group, groupIndex) => {
+      const rowItems = group.map((win, rowIndex) => (
+        <div key={rowIndex} className="w-16 h-16 rounded-full">
+          {win.section_id === 0 ? (
+            <img src={a} alt="Image A" className="w-16 mb-3" />
+          ) : (
+            <img src={b} alt="Image B" className="w-16 mb-3" />
+          )}
+        </div>
+      ));
+
+      const style = {
+        gridColumn: colIndex + 1, // Place the group in the current column
+        gridRowStart: 1, // Start from the first row
+        gridRowEnd: `span ${group.length}`, // Span as many rows as there are items
+      };
+
+      // Move to the next column for the next group
+      colIndex++;
+
+      return (
+        <div
+          key={groupIndex}
+          style={style}
+          className="flex flex-col justify-start items-center "
+        >
+          {rowItems}
+        </div>
+      );
+    });
+  };
+
   return (
     <div className="bg-[#971909] relative">
-      <img
+      {/* <img
         src={sidelogo}
         alt="sidelogo"
         className="absolute left-0 top-1/2 transform -translate-y-1/2 h-[80%] ml-[-30px]"
@@ -113,44 +163,44 @@ const GameGrid = ({ winPercentages, setWinPercentages }) => {
         src={sidelogo}
         alt="sidelogo"
         className="absolute right-0 top-1/2 transform -translate-y-1/2 h-[80%]"
-      />
-      <div className="max-w-3xl mx-auto">
-        <div className="grid grid-cols-10 p-10 rounded-b-lg">
-          {[...Array(50)].map((_, index) => (
-            <div key={index} className="flex justify-center items-center py-2">
-              {recentWins[index] ? (
-                <div className="w-16 h-16 rounded-full ">
-                  {recentWins[index].section_id === 0 ? (
-                    <img src={a} alt="Image A" className="w-16 -mt-3.5" />
-                  ) : (
-                    <img src={b} alt="Image B" className="w-16 -mt-2.5" />
-                  )}
-                </div>
-              ) : (
-                // Fallback to black circle if there is no recent win for this index
-                <div className="w-16 h-16 bg-[#741003] rounded-full"></div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* <div className="p-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {recentWins.map((win, index) => (
-                <div key={index} className="flex flex-col items-center bg-gray-100 p-2 rounded-lg shadow-md">
-                    {win.section_id === 0 ? (
-                        <img src={a} alt="Image A" className="w-16 h-16 object-cover" />
-                    ) : (
-                        <img src={b} alt="Image B" className="w-16 h-16 object-cover" />
-                    )}
-                      </div>
-            ))}
-        </div> */}
+      /> */}
+       <div className="w-full max-w-full mx-auto p-4">
+      {/* Centering the grid and adjusting the gaps */}
+      <div className="grid grid-cols-10 gap-x-8 gap-y-4 justify-center ">
+        {renderGrid()}
       </div>
+    </div>
     </div>
   );
 };
 
+
+
+
 const BettingSection = () => {
+  const [minBet, setMinBet] = useState(null);
+  const [maxBet, setMaxBet] = useState(null);
+  const [newMinBet, setNewMinBet] = useState("");
+  const [newMaxBet, setNewMaxBet] = useState("");
+
+  // Fetch current bets when the component mounts
+  useEffect(() => {
+    getBet();
+  }, []);
+  const getBet = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/myapp/api/get-bet/");
+      const data = await response.json();
+      if (response.ok) {
+        setMinBet(data.min_bet);
+        setMaxBet(data.max_bet);
+      } else {
+        console.log(data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching bet data:", error);
+    }
+  };
   return (
     <div className="font-questrial p-4 rounded-lg  shadow-lg text-left w-1/4 relative">
       <img src={screw} alt="screw" className="absolute top-2 left-2 w-8 h-8" />
@@ -158,14 +208,13 @@ const BettingSection = () => {
       <div className="text-[#f3be39] text-center font-semibold">
         <p className="text-3xl font-bold font-ramaraja ">Bets</p>
         <div className="flex-col items-start justify-start">
-          <p className="text-lg">Max: 20,000</p>
-          <p className="text-lg">Min: 1,000</p>
+          <p className="text-lg">Max:{maxBet}</p>
+          <p className="text-lg">Min: {minBet}</p>
         </div>
       </div>
     </div>
   );
 };
-
 const Statistics = ({ winPercentages }) => {
   return (
     <div className="  text-[#f3be39] p-4 border-2 border-gray-400 shadow-lg w-2/4">

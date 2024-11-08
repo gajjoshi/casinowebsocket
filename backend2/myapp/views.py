@@ -715,7 +715,7 @@ def get_recent_wins(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
     
-current_players = []
+current_players = ["page1", "page2", "page3","page4", "page5", "page6"]
 @csrf_exempt
 def player_round(request):
     global current_players
@@ -736,17 +736,18 @@ def player_round(request):
             return JsonResponse({"success": False, "message": "Invalid JSON format"}, status=400)
 
     elif request.method == 'GET':
-        if current_players:
+        if current_players:  # Check if current_players is not empty
             return JsonResponse({"current_players": current_players})
         else:
+            # If no players are set, default response
             return JsonResponse({"message": "No player playing"})
 
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
     
     
-min_bet = None
-max_bet = None
+min_bet = 100
+max_bet = 10000
 
 @csrf_exempt
 def set_bet(request):

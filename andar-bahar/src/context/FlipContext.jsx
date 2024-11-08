@@ -4,7 +4,7 @@ import React, { createContext, useState, useContext } from "react";
 const FlipContext = createContext();
 
 export const FlipProvider = ({ children }) => {
-  const [isRevealed, setIsRevealed] = useState(false);
+  const [isRevealed, setIsRevealed] = useState(true);
 
   // Toggle the revealed state
   const toggleReveal = () => setIsRevealed((prev) => !prev);

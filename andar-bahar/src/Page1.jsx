@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useContext, useEffect, useState } from "react";
 import axios from "axios";
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
@@ -13,8 +13,18 @@ import b from "./assets/b.png";
 import ocean7 from "./assets/ocean7.png";
 import stat from "./assets/stat2.png";
 import CardFlip from "./components/CardFlip";
+import { RefreshContext } from "./context/RefreshContext";
+
 const Page1 = () => {
   const { width, height } = useWindowSize();
+  const { refreshKey } = useContext(RefreshContext);
+
+  useEffect(() => {
+    // This effect will run when refreshKey changes
+    console.log("Page1 re-rendered");
+  }, [refreshKey]);
+
+
 
   return (
     <div className=" ">

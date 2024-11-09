@@ -16,6 +16,8 @@ import BetPopUp from "./BetPopUp";
 import PlayerSelectionPopup from "./PlayerSelectionpopUp";
 import WinnerModal from "./components/WinnerModal";
 import { useFlip } from "./context/FlipContext";
+import { RefreshContext } from "./context/RefreshContext";
+import { useNavigate } from "react-router-dom";
 
 const AndarBaharPage = () => {
   const { toggleReveal } = useFlip();
@@ -42,6 +44,17 @@ const AndarBaharPage = () => {
 };
 const allPlayers = ["page1", "page2", "page3", "page4", "page5", "page6"];
 const TopMenu = () => {
+
+  const navigate = useNavigate();
+
+  const { refreshPage1 } = useContext(RefreshContext);
+
+  const [refreshKey, setRefreshKey] = React.useState(0);
+
+  // Call this function to trigger a re-render of ChildComponent
+  const refreshChild = () => {
+    setRefreshKey((oldKey) => oldKey + 1);
+  };
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [showBet, setShowBet] = useState(false);
@@ -54,8 +67,39 @@ const TopMenu = () => {
     "page5",
     "page6",
   ];
+  const [isPushing, setIsPushing] = useState(false); // To track the pushing status
 
+  const startPush = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/myapp/api/start-push/', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.message === 'Pushing started.') {
+        setIsPushing(true);  // Update the state to indicate pushing has started
+      }
+    } catch (error) {
+      console.error('Error starting the push:', error);
+    }
+  };
+
+  const stopPush = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/myapp/api/stop-push/', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.message === 'Pushing stopped.') {
+        setIsPushing(false);  // Update the state to indicate pushing has stopped
+      }
+    } catch (error) {
+      console.error('Error stopping the push:', error);
+    }
+  };
   const handleReset = async () => {
+    setRefreshKey((oldKey) => oldKey + 1);
+
+
     try {
       const response = await axios.post(
         "http://127.0.0.1:8000/myapp/api/reset_collections/"
@@ -66,10 +110,18 @@ const TopMenu = () => {
       } else {
         console.log("Reset failed with status:", response.status);
       }
+      // refreshPage1();
+      
+
+
     } catch (error) {
       console.error("Error resetting collections:", error);
     }
+    window.location.reload();
+
+
   };
+
 
   const [currentPlayers, setCurrentPlayers] = useState([]);
 
@@ -158,6 +210,7 @@ const TopMenu = () => {
               >
                 Reset
               </button>
+
               <button
                 className="block w-full text-left px-4 py-2 hover:bg-red-700"
                 onClick={() => {
@@ -186,6 +239,13 @@ const TopMenu = () => {
               </button>
 
               {showBet && <BetPopUp setShowBet={setShowBet} />}
+              <button
+        onClick={startPush}
+        disabled={isPushing}  // Disable the start button when pushing is active
+        className={`block w-full text-left px-4 py-2 hover:bg-red-700 ${isPushing ? 'opacity-50' : ''}`}
+      >
+        Start Automatic Game
+      </button>
             </div>
           )}
         </div>
@@ -231,6 +291,9 @@ const AndarBaharSection = ({
         if (result === "0 wins") {
           setWon(0);
           handleWin();
+          stopPush();
+          
+
         } else if (result === "1 wins") {
           // alert(" 1 wins");
           setWon(1);
@@ -265,7 +328,19 @@ const AndarBaharSection = ({
   const handleCloseModal = () => {
     setShowModal(false);
   };
-
+  const stopPush = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/myapp/api/stop-push/', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      // if (data.message === 'Pushing stopped.') {
+      //   setIsPushing(false);  // Update the state to indicate pushing has stopped
+      // }
+    } catch (error) {
+      console.error('Error stopping the push:', error);
+    }
+  };
   return (
     <div className="flex flex-col w-full lg:w-3/4 bg-[#971909] p-4 shadow-lg border-2 border-[#D6AB5D]">
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />

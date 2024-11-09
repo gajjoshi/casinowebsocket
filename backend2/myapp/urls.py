@@ -22,5 +22,7 @@ urlpatterns = [
     path('api/player-round/', views.player_round, name='player_round'),
     path('api/set-bet/', views.set_bet, name='set_bet'),
     path('api/get-bet/', views.get_bet, name='get_bet'),
+    path('api/start-push/', views.start_push, name='start_push'),
+    path('api/stop-push/', views.stop_push, name='stop_push'),
 
 ]

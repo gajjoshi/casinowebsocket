@@ -9,7 +9,8 @@ from .mongo_helper import MongoDBHelper
 from pymongo import MongoClient
 import urllib.parse
 import pymongo
-
+import time
+import threading
 joker=""
 
 @csrf_exempt
@@ -780,3 +781,56 @@ def get_bet(request):
             return JsonResponse({"message": "Bets not set"})
 
     return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
+
+pushing_active = True
+shuffled_cards=[]
+def push_to_mongo():
+    """
+    Pushes the card data to MongoDB every second until the flag is set to False.
+    """
+    global pushing_active
+
+     # Shuffle the cards to ensure random order
+    shuffled_cards = cards.copy()  # Create a copy to shuffle
+    random.shuffle(shuffled_cards)
+
+    first_card = shuffled_cards[0]
+    print(f"First card: {first_card['name']}")
+    joker_document = {
+        "value": first_card["name"],
+    }
+    mongo_helper.db.joker.insert_one(joker_document)  # Push to the joker collection
+
+    # Now push the rest of the cards to the main collection (gaj2)
+    for card in shuffled_cards[1:]:  # Start from the second card
+        if not pushing_active:  # Check if we should stop
+            break  # Stop pushing data if the flag is False
+
+        mongo_helper.collection.insert_one(
+            {"value":  card["name"], "isRead": 0,"isRead2": 0},
+        )
+        time.sleep(3)  # Sleep for 1 second
+
+
+@csrf_exempt
+def start_push(request):
+    """
+    Starts pushing data to MongoDB every second.
+    """
+    global pushing_active
+    pushing_active = True  # Set the flag to True to start pushing data
+    push_to_mongo()  # Start pushing the data one by one
+    return JsonResponse({"message": "Pushing started.", "first": shuffled_cards[0]["name"]})
+
+
+@csrf_exempt
+def stop_push(request):
+    """
+    Stops the process of pushing data to MongoDB.
+    """
+    global pushing_active
+    global shuffled_cards
+    shuffled_cards=[]
+    pushing_active = False  # Set the flag to False to stop pushing data
+    return JsonResponse({"message": "Pushing stopped.","cards":shuffled_cards})

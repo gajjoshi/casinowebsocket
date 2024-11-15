@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
@@ -14,6 +14,7 @@ import ocean7 from "./assets/ocean7.png";
 import stat from "./assets/stat2.png";
 import CardFlip from "./components/CardFlip";
 import { RefreshContext } from "./context/RefreshContext";
+import WinnerModal from "./components/WinnerModal";
 
 const Page1 = () => {
   const { width, height } = useWindowSize();
@@ -23,8 +24,6 @@ const Page1 = () => {
     // This effect will run when refreshKey changes
     console.log("Page1 re-rendered");
   }, [refreshKey]);
-
-
 
   return (
     <div className=" ">
@@ -75,6 +74,17 @@ const JokerAndCards = () => {
   const [section0Cards, setSection0Cards] = useState([]); // State to store history of section 0 cards
   const [section1Cards, setSection1Cards] = useState([]);
   const [revealedCards, setRevealedCards] = useState({});
+  const [won, setWon] = useState(-1);
+
+  const [showModal, setShowModal] = useState(false);
+
+  const handleWin = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
 
   const fetchCardData = async () => {
     try {
@@ -87,12 +97,27 @@ const JokerAndCards = () => {
 
         // setSectionId(sectionId);
 
-        if (sectionId === 0) {
+        if (sectionId === 1) {
           setSection0Cards((prev) => [...prev, newCard]);
           revealCard(newCard, "section0");
-        } else if (sectionId === 1) {
+        } else if (sectionId === 0) {
           setSection1Cards((prev) => [...prev, newCard]);
           revealCard(newCard, "section1");
+        }
+
+        const result = response.data.result;
+
+        // Check the "result" field and give alerts accordingly
+        if (result === "0 wins") {
+          setWon(0);
+          handleWin();
+          // stopPush();
+        } else if (result === "1 wins") {
+          // alert(" 1 wins");
+          setWon(1);
+          handleWin();
+
+          // Trigger confetti on win
         }
       }
     } catch (error) {
@@ -117,6 +142,8 @@ const JokerAndCards = () => {
   return (
     <div className="bg-[#8F1504] p-4 border-8 border-yellow-600">
       {/* Joker Section */}
+      <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
+
       <div className="flex  items-center justify-center mx-auto  border-b-4 border-yellow-600 pb-4 mb-4">
         <div className="text-white ml-2 font-ramaraja text-4xl font-bold">
           JOKER
@@ -135,7 +162,6 @@ const JokerAndCards = () => {
             </div>
           )}
         </div>
-        
       </div>
 
       <div className="flex relative h-1/2 justify-between p-4 border-b-4 border-yellow-600">

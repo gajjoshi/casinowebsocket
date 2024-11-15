@@ -31,7 +31,7 @@ const WinnerModal = ({ show, onClose, winner }) => {
 
   return (
     <>
-      <div className="fixed z-50 inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+      <div className="fixed h-screen z-50 inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
         {showConfetti && <Confetti />}
         <motion.div
           initial={{ scale: 0 }}

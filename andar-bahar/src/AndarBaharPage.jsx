@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 
 const AndarBaharPage = () => {
   const { toggleReveal } = useFlip();
-  const [sectionId, setSectionId] = useState(0);
+  const [sectionId, setSectionId] = useState(1);
   const [section0Cards, setSection0Cards] = useState([]);
   const [section1Cards, setSection1Cards] = useState([]);
 
@@ -29,22 +29,25 @@ const AndarBaharPage = () => {
     <div className="min-h-screen bg-[#450A03] ">
       <TopMenu />
       <div className="flex flex-col lg:flex-row justify-between p-2">
-        <AndarBaharSection setSectionId={setSectionId}
+        <AndarBaharSection
+          setSectionId={setSectionId}
           section0Cards={section0Cards}
           setSection0Cards={setSection0Cards}
           section1Cards={section1Cards}
-          setSection1Cards={setSection1Cards} />
+          setSection1Cards={setSection1Cards}
+        />
 
-        <ScoreAndJokerSection  sectionId={sectionId}
+        <ScoreAndJokerSection
+          sectionId={sectionId}
           section0Cards={section0Cards}
-          section1Cards={section1Cards}/>
+          section1Cards={section1Cards}
+        />
       </div>
     </div>
   );
 };
 const allPlayers = ["page1", "page2", "page3", "page4", "page5", "page6"];
 const TopMenu = () => {
-
   const navigate = useNavigate();
 
   const { refreshPage1 } = useContext(RefreshContext);
@@ -71,34 +74,39 @@ const TopMenu = () => {
 
   const startPush = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/myapp/api/start-push/', {
-        method: 'POST',
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/myapp/api/start-push/",
+        {
+          method: "POST",
+        }
+      );
       const data = await response.json();
-      if (data.message === 'Pushing started.') {
-        setIsPushing(true);  // Update the state to indicate pushing has started
+      if (data.message === "Pushing started.") {
+        setIsPushing(true); // Update the state to indicate pushing has started
       }
     } catch (error) {
-      console.error('Error starting the push:', error);
+      console.error("Error starting the push:", error);
     }
   };
 
   const stopPush = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/myapp/api/stop-push/', {
-        method: 'POST',
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/myapp/api/stop-push/",
+        {
+          method: "POST",
+        }
+      );
       const data = await response.json();
-      if (data.message === 'Pushing stopped.') {
-        setIsPushing(false);  // Update the state to indicate pushing has stopped
+      if (data.message === "Pushing stopped.") {
+        setIsPushing(false); // Update the state to indicate pushing has stopped
       }
     } catch (error) {
-      console.error('Error stopping the push:', error);
+      console.error("Error stopping the push:", error);
     }
   };
   const handleReset = async () => {
     setRefreshKey((oldKey) => oldKey + 1);
-
 
     try {
       const response = await axios.post(
@@ -111,17 +119,11 @@ const TopMenu = () => {
         console.log("Reset failed with status:", response.status);
       }
       // refreshPage1();
-      
-
-
     } catch (error) {
       console.error("Error resetting collections:", error);
     }
     window.location.reload();
-
-
   };
-
 
   const [currentPlayers, setCurrentPlayers] = useState([]);
 
@@ -240,12 +242,14 @@ const TopMenu = () => {
 
               {showBet && <BetPopUp setShowBet={setShowBet} />}
               <button
-        onClick={startPush}
-        disabled={isPushing}  // Disable the start button when pushing is active
-        className={`block w-full text-left px-4 py-2 hover:bg-red-700 ${isPushing ? 'opacity-50' : ''}`}
-      >
-        Start Automatic Game
-      </button>
+                onClick={startPush}
+                disabled={isPushing} // Disable the start button when pushing is active
+                className={`block w-full text-left px-4 py-2 hover:bg-red-700 ${
+                  isPushing ? "opacity-50" : ""
+                }`}
+              >
+                Start Automatic Game
+              </button>
             </div>
           )}
         </div>
@@ -259,7 +263,7 @@ const AndarBaharSection = ({
   section0Cards,
   setSection0Cards,
   section1Cards,
-  setSection1Cards
+  setSection1Cards,
 }) => {
   // const [section0Cards, setSection0Cards] = useState([]);
   // const [section1Cards, setSection1Cards] = useState([]);
@@ -277,11 +281,11 @@ const AndarBaharSection = ({
         const sectionId = response.data.section_id;
 
         setSectionId(sectionId);
-
-        if (sectionId === 0) {
+        console.log("sectionid:" + sectionId);
+        if (sectionId === 1) {
           setSection0Cards((prev) => [...prev, newCard]);
           revealCard(newCard, "section0");
-        } else if (sectionId === 1) {
+        } else if (sectionId === 0) {
           setSection1Cards((prev) => [...prev, newCard]);
           revealCard(newCard, "section1");
         }
@@ -292,8 +296,6 @@ const AndarBaharSection = ({
           setWon(0);
           handleWin();
           stopPush();
-          
-
         } else if (result === "1 wins") {
           // alert(" 1 wins");
           setWon(1);
@@ -330,15 +332,18 @@ const AndarBaharSection = ({
   };
   const stopPush = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/myapp/api/stop-push/', {
-        method: 'POST',
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/myapp/api/stop-push/",
+        {
+          method: "POST",
+        }
+      );
       const data = await response.json();
       // if (data.message === 'Pushing stopped.') {
       //   setIsPushing(false);  // Update the state to indicate pushing has stopped
       // }
     } catch (error) {
-      console.error('Error stopping the push:', error);
+      console.error("Error stopping the push:", error);
     }
   };
   return (

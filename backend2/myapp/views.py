@@ -801,7 +801,7 @@ def push_to_mongo():
         "value": first_card["name"],
     }
     mongo_helper.db.joker.insert_one(joker_document)  # Push to the joker collection
-
+    time.sleep(3)
     # Now push the rest of the cards to the main collection (gaj2)
     for card in shuffled_cards[1:]:  # Start from the second card
         if not pushing_active:  # Check if we should stop

@@ -4,15 +4,15 @@ import App from "./App.jsx";
 import "./index.css";
 import { PlayerProvider } from "./context/PlayerContext.jsx";
 import { FlipProvider } from "./context/FlipContext.jsx";
-import { RefreshProvider } from "./context/RefreshContext";
+import { DataProvider } from './context/DataContext';
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <PlayerProvider>
       <FlipProvider>
-        <RefreshProvider>
+        <DataProvider>
         <App />
-        </RefreshProvider>
+        </DataProvider>
         </FlipProvider>
     </PlayerProvider>
   </StrictMode>

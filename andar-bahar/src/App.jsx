@@ -9,6 +9,7 @@ import Page5 from "./Page5";
 import Page2 from "./Page2";
 import Page01 from "./Page01";
 import Page6 from "./Page6";
+import Test from "./Test";
 const App = () => {
   return (
     <Router>
@@ -22,6 +23,7 @@ const App = () => {
         <Route path="/player4" element={<Page4 />} />
         <Route path="/player5" element={<Page5 />} />
         <Route path="/player6" element={<Page6 />} />
+        <Route path="/test" element={<Test />} />
       </Routes>
     </Router>
   );

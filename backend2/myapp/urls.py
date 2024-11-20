@@ -1,7 +1,6 @@
 from django.urls import path
 from . import views
 # from .views import assign_card_to_section
-
 urlpatterns = [
     path('api/receive-data/', views.receive_data, name='receive_data'),  
     path('api/get-data/', views.get_data, name='get_data'),
@@ -24,5 +23,9 @@ urlpatterns = [
     path('api/get-bet/', views.get_bet, name='get_bet'),
     path('api/start-push/', views.start_push, name='start_push'),
     path('api/stop-push/', views.stop_push, name='stop_push'),
+    path('api/check-empty/', views.check_empty, name='check_empty'),
+    path('api/update_card/', views.update_card, name='update_card'),
+    
+
 
 ]

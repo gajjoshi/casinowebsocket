@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
@@ -13,18 +13,17 @@ import b from "./assets/b.png";
 import ocean7 from "./assets/ocean7.png";
 import stat from "./assets/stat2.png";
 import CardFlip from "./components/CardFlip";
-import { RefreshContext } from "./context/RefreshContext";
+// import { RefreshContext } from "./context/RefreshContext";
+import WinnerModal from "./components/WinnerModal";
 
 const Page1 = () => {
   const { width, height } = useWindowSize();
-  const { refreshKey } = useContext(RefreshContext);
+  // const { refreshKey } = useContext(RefreshContext);
 
-  useEffect(() => {
-    // This effect will run when refreshKey changes
-    console.log("Page1 re-rendered");
-  }, [refreshKey]);
-
-
+  // useEffect(() => {
+  //   // This effect will run when refreshKey changes
+  //   console.log("Page1 re-rendered");
+  // }, [refreshKey]);
 
   return (
     <div className=" ">
@@ -38,29 +37,75 @@ const Page1 = () => {
   );
 };
 
-const JokerAndCards = () => {
-  // State to store the joker card value
-  const [jokerValue, setJokerValue] = useState(null);
 
-  // Function to fetch the joker value from the backend
+const JokerAndCards = () => {
+  const [jokerValue, setJokerValue] = useState(null);
+  const [section0Cards, setSection0Cards] = useState([]);
+  const [section1Cards, setSection1Cards] = useState([]);
+  const [revealedCards, setRevealedCards] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [won, setWon] = useState(-1);
+  // const [lastTimestamp, setLastTimestamp] = useState({}); 
+
+
+  // Function to fetch the reset status
+  // const checkResetStatus = async () => {
+  //   try {
+  //     const response = await axios.get("http://127.0.0.1:8000/myapp/api/reset_collections/");
+  //     const currentTimestamp = response.data.timestamp;
+
+  //     if (currentTimestamp !== lastTimestamp) {
+  //       // If the timestamp has changed, reset the states and reload the page
+      
+  //       setLastTimestamp(currentTimestamp);
+  //       console.log("Current timestamp:", currentTimestamp);
+  //       console.log("last timestamp:", lastTimestamp);
+  //       console.log("State has been reset");
+  //       window.location.reload();
+  //            console.log("reload now")
+
+  //     } else {
+  //       console.log("No reset, timestamp is the same");
+  //       console.log("Current timestamp:", currentTimestamp);
+  //       console.log("last timestamp:", lastTimestamp);
+
+
+  //     }
+  //   } catch (error) {
+  //     console.error("Error checking reset status:", error);
+  //   }
+  // };
+  // useEffect(() => {
+  //   const fetchTimestamp = async () => {
+  //     try {
+  //       const response = await axios.get("http://127.0.0.1:8000/myapp/api/reset_collections/");
+  //       if (response.data && response.data.timestamp) {
+  //         setLastTimestamp(response.data.timestamp); // Store the initial timestamp
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching initial timestamp:", error);
+  //     }
+  //   };
+    
+  //   fetchTimestamp();
+  // }, []);
+
+
+  // Initial fetch for the joker value
   const fetchJokerValue = () => {
     axios
       .get("http://127.0.0.1:8000/myapp/api/get_joker_value/")
       .then((response) => {
         const { value } = response.data.data;
-
-        // If the value is not empty, set the joker value
         if (value) {
-          setJokerValue(value); // Example: "6H"
+          setJokerValue(value);
         } else {
-          // Retry after a delay if value is empty
-          setTimeout(fetchJokerValue, 500); // Retry every 3 seconds
+          setTimeout(fetchJokerValue, 500);
         }
       })
       .catch((error) => {
         console.error("Error fetching joker value:", error);
-        // Retry after a delay in case of error
-        setTimeout(fetchJokerValue, 500); // Retry every 3 seconds
+        setTimeout(fetchJokerValue, 500);
       });
   };
 
@@ -69,30 +114,35 @@ const JokerAndCards = () => {
     fetchJokerValue();
   }, []);
 
-  const [showConfetti, setShowConfetti] = useState(false);
-
-  const [latestCard, setLatestCard] = useState(null); // State to store the latest card
-  const [section0Cards, setSection0Cards] = useState([]); // State to store history of section 0 cards
-  const [section1Cards, setSection1Cards] = useState([]);
-  const [revealedCards, setRevealedCards] = useState({});
-
   const fetchCardData = async () => {
     try {
-      const response = await axios.get(
-        "http://127.0.0.1:8000/myapp/api/assign_card_to_player/"
-      );
+      const response = await axios.get("http://127.0.0.1:8000/myapp/api/assign_card_to_player/");
       if (response.data) {
         const newCard = response.data.value;
         const sectionId = response.data.section_id;
 
-        // setSectionId(sectionId);
-
-        if (sectionId === 0) {
+        if (sectionId === 1) {
           setSection0Cards((prev) => [...prev, newCard]);
           revealCard(newCard, "section0");
-        } else if (sectionId === 1) {
+        } else if (sectionId === 0) {
           setSection1Cards((prev) => [...prev, newCard]);
           revealCard(newCard, "section1");
+        }
+
+        const result = response.data.result;
+        if (result === "0 wins") {
+          setWon(0);
+          handleWin();
+          setTimeout(() => {
+            window.location.reload();
+        }, 7000);
+        } else if (result === "1 wins") {
+          setWon(1);
+          handleWin();
+          setTimeout(() => {
+            window.location.reload();
+        }, 7000);
+
         }
       }
     } catch (error) {
@@ -104,28 +154,35 @@ const JokerAndCards = () => {
     setRevealedCards((prev) => ({ ...prev, [card]: true }));
     setTimeout(() => {
       setRevealedCards((prev) => ({ ...prev, [card]: false }));
-    }, 500); // Adjust timing as needed
+    }, 500);
   };
-  useEffect(() => {
-    // Fetch the data every 5 seconds
-    const intervalId = setInterval(fetchCardData, 500);
 
-    // Clean up the interval on component unmount
+  useEffect(() => {
+    const intervalId = setInterval(fetchCardData, 500);
     return () => clearInterval(intervalId);
   }, []);
 
+  // Periodic check for the reset status
+  // useEffect(() => {
+  //   const resetCheckInterval = setInterval(checkResetStatus, 10000); // Check every second
+  //   return () => clearInterval(resetCheckInterval);
+  // }, []);
+  const handleWin = () => {
+    setShowModal(true);
+  };
+  
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
   return (
     <div className="bg-[#8F1504] p-4 border-8 border-yellow-600">
-      {/* Joker Section */}
-      <div className="flex  items-center justify-center mx-auto  border-b-4 border-yellow-600 pb-4 mb-4">
-        <div className="text-white ml-2 font-ramaraja text-4xl font-bold">
-          JOKER
-        </div>
-
+      <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
+      <div className="flex items-center justify-center mx-auto border-b-4 border-yellow-600 pb-4 mb-4">
+        <div className="text-white ml-2 font-ramaraja text-4xl font-bold">JOKER</div>
         <div className="w-40 h-60 border-dashed ml-5 border-2 border-yellow-600 bg-[#450A0366] rounded-lg flex justify-center items-center">
           {jokerValue ? (
             <img
-              src={`./cards/${jokerValue}.png`} // Dynamically update the joker image
+              src={`./cards/${jokerValue}.png`}
               alt="Ocean 7 Casino"
               className="h-52"
             />
@@ -135,13 +192,10 @@ const JokerAndCards = () => {
             </div>
           )}
         </div>
-        
       </div>
 
       <div className="flex relative h-1/2 justify-between p-4 border-b-4 border-yellow-600">
-        <div className="text-white font-ramaraja text-6xl mt-10 font-bold mr-4">
-          A
-        </div>
+        <div className="text-white font-ramaraja text-6xl mt-10 font-bold mr-4">A</div>
         <div className="border-dashed border-2 border-yellow-600 rounded-lg w-full h-60 bg-[#450A0366] flex pl-32 items-center justify-left">
           {section0Cards.length > 0 &&
             section0Cards.map((card, index) => (
@@ -158,9 +212,7 @@ const JokerAndCards = () => {
       </div>
 
       <div className="flex h-1/2 justify-center p-4">
-        <div className="text-white font-ramaraja text-6xl mt-10 font-bold mr-4">
-          B
-        </div>
+        <div className="text-white font-ramaraja text-6xl mt-10 font-bold mr-4">B</div>
         <div className="border-dashed border-2 border-yellow-600 rounded-lg w-full h-60 bg-[#450A0366] flex pl-32 items-center justify-left">
           {section1Cards.length > 0 &&
             section1Cards.map((card, index) => (
@@ -178,6 +230,7 @@ const JokerAndCards = () => {
     </div>
   );
 };
+
 
 const BettingSection = () => {
   const [minBet, setMinBet] = useState(null);

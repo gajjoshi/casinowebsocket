@@ -1,6 +1,7 @@
 from .models import MobileData
 import json
 from django.http import JsonResponse
+from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 import random
 from .data.cards import cards
@@ -10,7 +11,7 @@ from pymongo import MongoClient
 import urllib.parse
 import pymongo
 import time
-import threading
+import datetime
 joker=""
 
 @csrf_exempt
@@ -476,60 +477,103 @@ def extract_number_from_name(card_name):
 @csrf_exempt
 def assign_card_to_section_A(request):
     global joker
-    global card_assignment_counter  
-    print("")
+    global card_assignment_counter
 
     try:
-        
-        print(f"{card_assignment_counter}:card_assignment_counter")
-        # Fetch the latest card value from MongoDB
-        value = None
-        latest_document = mongo_helper.collection.find({"isRead":0})  # Fetch the latest document
-        for doc in latest_document:
-            section_id = card_assignment_counter % 2
-            card_assignment_counter += 1
-            value = doc.get('value') 
-            print(value)
-            card_value=extract_number_from_name(value)
-            print(card_value)
-             # Assuming 'value' is the card name or number
+        # POST Request: Assign a card to a section
+        if request.method == "POST":
+            print(f"{card_assignment_counter}: card_assignment_counter")
 
-        if not value:
-            return JsonResponse({"error": "No card value found in MongoDB"}, status=500)
+            # Fetch the latest unread card value from MongoDB
+            value = None
+            latest_document = mongo_helper.collection.find({"isRead": 0})  # Fetch all unread documents
+            for doc in latest_document:
+                section_id = card_assignment_counter % 2
+                card_assignment_counter += 1
+                value = doc.get('value')
+                print(f"Card value fetched: {value}")
+                card_value = extract_number_from_name(value)
+                print(f"Extracted card value: {card_value}")
 
-       
-        # # Check if all cards for the section have already been assigned
-        # if len(cardState['assignedCardIndices'][section_id]) >= len(cards) // 2:  # Assuming each section gets half the cards
-        #     return JsonResponse({"error": "All cards assigned in this section"}, status=400)
+            if not value:
+                return JsonResponse({"error": "No card value found in MongoDB"}, status=500)
 
-        # Extract the number from the joker card's name, if jokerCard is assigned
-        if card_value == joker:
-            result = f"{section_id} wins"
-           
+            # Assign card and check if it's a joker
+            if card_value == joker:
+                result = f"{section_id} wins"
+            else:
+                result = "Card assigned, no match"
+
+            # Update the document as read
+            mongo_helper.collection.update_one(
+                {"value": value, "isRead": 0},
+                {"$set": {"isRead": 1}}
+            )
+            print(f"Updated card {value} with isRead: 1")
+
+            # Respond with the assigned card and result
+            return JsonResponse({
+                "success": True,
+                "card": card_value,
+                "value": value,
+                "section_id": section_id,
+                "result": result,
+                "joker": joker,
+            })
+
+        # PUT Request: Update the latest card value
+        elif request.method == "PUT":
+            try:
+                # Parse the request body for the new value
+                body = json.loads(request.body)
+                print(f"Request body received: {body}")
+                new_value = body.get("value")
+                if not new_value:
+                    return JsonResponse({"error": "New card value is required"}, status=400)
+
+                # Fetch the latest document from MongoDB
+                latest_document = mongo_helper.collection.find_one(sort=[("_id", -1)])  # Get the latest document by _id
+                if not latest_document:
+                    return JsonResponse({"error": "No documents found in MongoDB"}, status=404)
+
+                # Update the latest document with the new value and reset isRead to 0
+                mongo_helper.collection.update_one(
+                    {"_id": latest_document["_id"]},  # Use the _id of the latest document
+                    {"$set": {"value": new_value, "isRead": 0}}
+                )
+                print(f"Updated latest document {latest_document['_id']} with value: {new_value} and reset isRead to 0")
+
+                # Simulate assignment logic for the response
+                section_id = card_assignment_counter % 2  # Keep section_id logic consistent
+                card_assignment_counter += 1
+                card_value = extract_number_from_name(new_value)
+
+                # Check if the new card matches the joker
+                if card_value == joker:
+                    result = f"{section_id} wins"
+                else:
+                    result = "Card assigned, no match"
+
+                # Respond with the updated card details and consistent response structure
+                return JsonResponse({
+                    "success": True,
+                    "card": card_value,
+                    "value": new_value,
+                    "section_id": section_id,
+                    "result": result,
+                    "joker": joker,
+                })
+
+            except Exception as e:
+                print(f"Error in PUT request: {str(e)}")
+                return JsonResponse({"error": str(e)}, status=500)
+
+        # Unsupported Request Methods
         else:
-            result = "Card assigned, no match"
+            return JsonResponse({"error": "Unsupported HTTP method"}, status=405)
 
-            
-
-
-        mongo_helper.collection.update_one(
-            {"value": value, "isRead": 0},
-            {"$set": {"isRead": 1}}
-        )
-        print(f"Updated card card {value} with isRead: 1")
-        print(joker)
-
-        # Respond with the assigned card and result
-        return JsonResponse({
-            "success": True,
-            "card": card_value,
-            "value": value,
-            "section_id": section_id,
-            "result": result,
-            "joker":joker,
-            # "state": cardState
-        })
     except Exception as e:
+        print(f"Unexpected error: {str(e)}")
         return JsonResponse({"error": str(e)}, status=500)
 
 @csrf_exempt
@@ -679,21 +723,52 @@ gaj2_collection = db['gaj2']
 
 
 
+
+# Global timestamp variable to store the last POST request time
+timestamp = None
+
 @csrf_exempt
 def reset_collections(request):
     global card_assignment_counter
     global card_assignment_counter2
-    try:
-        joker_collection.delete_many({})  # If you want a specific filter, add it inside {}
-        gaj2_collection.delete_many({})
+    global timestamp
 
-        card_assignment_counter=1
-        card_assignment_counter2=1
+    if request.method == 'POST':
+        try:
+            # Reset the collections
+            joker_collection.delete_many({})  # Add a filter if needed
+            gaj2_collection.delete_many({})
+            
+            # Reset counters
+            card_assignment_counter = 1
+            card_assignment_counter2 = 1
+            
+            # Set the current timestamp
+            timestamp = datetime.datetime.now()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Collections reset successfully',
+                'timestamp': timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
 
-        return JsonResponse({'success': True, 'message': 'Collections reset successfully'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
-    
+    elif request.method == 'GET':
+        if timestamp:
+            return JsonResponse({
+                'success': True,
+                'message': 'reset',
+                'timestamp': timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'No POST request has been made yet.'
+            })
+
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid HTTP method'})
 
 
 @csrf_exempt
@@ -834,3 +909,42 @@ def stop_push(request):
     shuffled_cards=[]
     pushing_active = False  # Set the flag to False to stop pushing data
     return JsonResponse({"message": "Pushing stopped.","cards":shuffled_cards})
+
+def check_empty(request):
+        is_empty = mongo_helper.collection.count_documents({}) == 0
+        return JsonResponse({"empty": is_empty})
+
+
+@csrf_exempt
+def update_card(request):
+    if request.method == 'POST':
+            # Extract new value from request data
+            body = json.loads(request.body)
+            new_value = body.get("value")
+            if not new_value:
+                return JsonResponse({"error": "Missing 'value' in request data."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Find the last document based on insertion order (assuming ObjectId sorting)
+            last_document = mongo_helper.collection.find_one(sort=[("_id", -1)])
+
+            if not last_document:
+                return JsonResponse({"error": "No document found in the collection."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Update the last document
+            result = mongo_helper.collection.update_one(
+                {"_id": last_document["_id"]},  # Filter by the ID of the last document
+                {
+                    "$set": {
+                        "value": new_value,
+                        "isRead": 1,
+                        "isRead2": 0
+                    }
+                }
+            )
+
+            if result.modified_count == 1:
+                return JsonResponse({"message": "Document updated successfully."}, status=status.HTTP_200_OK)
+            else:
+                return JsonResponse({"error": "Failed to update the document."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        

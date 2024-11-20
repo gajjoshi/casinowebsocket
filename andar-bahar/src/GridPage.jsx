@@ -13,9 +13,9 @@ const GridPage = () => {
   const [winPercentages, setWinPercentages] = useState({});
 
   return (
-    <>
-      <div className="bg-yellow-400 px-2 pt-1 text-center">
-        <div className="bg-yellow-200 px-4 pt-2 text-center shadow-lg rounded-lg">
+    <div className="h-screen bg-yellow-400">
+      <div className="bg-yellow-400 px-2 h-[75%] pt-1 text-center">
+        <div className="bg-yellow-200 px-4 pt-2 h-full text-center shadow-lg rounded-lg">
           <Header />
           <GameGrid
             winPercentages={winPercentages}
@@ -23,13 +23,13 @@ const GridPage = () => {
           />
         </div>
       </div>
-      <div className="flex justify-between bg-[url('./assets/wood.png')]  shadow-lg border-2 border-yellow-600">
+      <div className="flex h-[20%] justify-between bg-[url('./assets/wood.png')]  shadow-lg border-2 border-yellow-600">
         <BettingSection />
         <Statistics winPercentages={winPercentages} />
         <AndarBaharButtons />
       </div>
       <Footer />
-    </>
+    </div>
   );
 };
 
@@ -40,7 +40,7 @@ const Header = () => {
       <img
         src={logo}
         alt="logo"
-        className="absolute left-1/2 mt-2 transform -translate-x-1/2 h-40"
+        className="absolute left-1/2 mt-2 z-20 transform -translate-x-1/2 h-40"
       />
       <div className="text-3xl  text-yellow-300">
         Table <br></br> 1234
@@ -153,7 +153,7 @@ const GameGrid = ({ winPercentages, setWinPercentages }) => {
   };
 
   return (
-    <div className="bg-[#971909] relative">
+    <div className="bg-[#971909] h-[79%] relative">
       {/* <img
         src={sidelogo}
         alt="sidelogo"
@@ -164,18 +164,15 @@ const GameGrid = ({ winPercentages, setWinPercentages }) => {
         alt="sidelogo"
         className="absolute right-0 top-1/2 transform -translate-y-1/2 h-[80%]"
       /> */}
-       <div className="w-full max-w-full mx-auto p-4">
-      {/* Centering the grid and adjusting the gaps */}
-      <div className="grid grid-cols-10 gap-x-8 gap-y-4 justify-center ">
-        {renderGrid()}
+      <div className="w-full  max-w-full mx-auto p-4">
+        {/* Centering the grid and adjusting the gaps */}
+        <div className="grid grid-cols-10 gap-x-8 gap-y-4 justify-center ">
+          {renderGrid()}
+        </div>
       </div>
-    </div>
     </div>
   );
 };
-
-
-
 
 const BettingSection = () => {
   const [minBet, setMinBet] = useState(null);

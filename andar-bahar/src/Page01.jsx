@@ -5,7 +5,7 @@ import Confetti from 'react-confetti';
 // import JokerAndCards from './JokerAndCards'
 // import BetsAndStatistics from "./BetsAndStatistics"
 import Page1 from "./Page1";
-import Default from "./Default";
+// import Default from "./Default";
 
 
 
@@ -13,13 +13,13 @@ const Page01 = () => {
   const { width, height } = useWindowSize();
 
   return (
-    <Default pageName="page1">
+    // <Default pageName="page1">
 
     <div className="min-h-screen bg-brown-700 ">
       <PlayerHeader  />
      <Page1/>
     </div>
-    </Default>
+    // </Default>
   );
 };
 

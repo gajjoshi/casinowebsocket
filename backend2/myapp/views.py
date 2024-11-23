@@ -580,12 +580,10 @@ def assign_card_to_section_A(request):
 def assign_card_to_player(request):
     global joker
     global card_assignment_counter2
-    print("NICE")
+    # print("NICE")
 
     try:
         
-        # print(f"{card_assignment_counter2}:card_assignment_counter")
-        # Fetch the latest card value from MongoDB
         value = None
         latest_document = mongo_helper.collection.find({"isRead2":0})  # Fetch the latest document
         for doc in latest_document:

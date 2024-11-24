@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext,useRef } from "react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import screw from "./assets/screw.png";
@@ -49,110 +49,137 @@ const AndarBaharPage = () => {
   };
   const [won, setWon] = useState(-1);
   const [showModal, setShowModal] = useState(false);
+  const [prevId, setPrevId] = useState(0);
+  const handleReset = async () => {
 
-  const fetchCardData = async (method, cardValue = "") => {
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/myapp/api/reset_collections/"
+      );
+
+      if (response.status === 200) {
+        console.log("Reset successful:", response.data);
+        alert("Collections have been reset!");
+
+      } else {
+        console.log("Reset failed with status:", response.status);  }
+  } catch (error) {
+      console.error("Error resetting collections:", error);
+
+    }
+    window.location.reload();
+  };
+  const fetchCardData = async (method,cardValue) => {
     try {
       const url = "http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/";
+  console.log("cardValue2",  JSON.stringify(cardValue));
 
+    
       const config = {
-        method,
-        url,
+        url: 'http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/',
+        method: method,
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json', // Specify content type
         },
-        data: method === "PUT" ? { value: cardValue } : undefined,
+        data: cardValue, // Example body to send with the request
       };
-
-      // Axios call
-      const response = await axios(config);
-
-      if (response.data.success) {
-        const { value, section_id } = response.data;
-
-        // POST: Append the card
-        if (method === "POST") {
-          if (section_id === 0) {
-            setSection0Cards((prev) => [...prev, value]);
-            console.log("section0Cards", section0Cards);
-          } else if (section_id === 1) {
-            setSection1Cards((prev) => [...prev, value]);
-            console.log("section1Cards", section1Cards);
-          }
-          const result = response.data.result;
-          console.log("result", result);
-
-          // Check the "result" field and give alerts accordingly
-          if (result === "0 wins") {
-            setWon(0);
-            stopPush();
-            handleWin();
-            setTimeout(() => {
-              window.location.reload();
-          }, 7000);
-            // window.location.reload();
-          } else if (result === "1 wins") {
-            // alert(" 1 wins");
-            setWon(1);
-            stopPush();
-            handleWin();
-            setTimeout(() => {
-              window.location.reload();
-          }, 7000);
-            // window.location.reload();
-
-
-            // Trigger confetti on win
-          }
+      
+      const response = await fetch(config.url, {
+        method: config.method,
+        headers: config.headers,
+        body: JSON.stringify(config.data), // Stringify the data
+      });
+      const responseData = await response.json();
+      console.log("responseData", responseData);
+  
+      if (responseData.success) {
+        const { value, section_id, current_id, result,update } = responseData;
+        console.log("response", responseData);
+  
+        // POST: Handle new card assignment when prev_id and current_id are different
+        if (update === 0) {
+          // Make sure we work with the latest state of prevId
+          setPrevId((prev) => {
+            if (prev !== current_id) {
+              console.log("current_id:", current_id);
+  
+              // Logic for handling the card addition to the section
+              if (section_id === 0) {
+                setSection0Cards((prevCards) => {
+                  const updatedCards = [...prevCards, value];
+                  console.log("Updated section0Cards", updatedCards); // Log here after the update
+                  return updatedCards;
+                });
+              } else if (section_id === 1) {
+                setSection1Cards((prevCards) => {
+                  const updatedCards = [...prevCards, value];
+                  console.log("Updated section1Cards", updatedCards); // Log here after the update
+                  return updatedCards;
+                });
+              }
+  
+              return prev + 1; // Increment prevId after adding a card
+            } else {
+              console.log("Card already read, no update.");
+              return prev; // No change to prevId
+            }
+          });
+        }if (update === 1 ) {
+          console.log("inside put");
+          setPrevId((prev) => {
+            // Logic for removing the last card (most recent one) and adding the new value
+            if (section_id === 0) {
+              setSection0Cards((prevCards) => {
+                // Remove the last card and add the new one
+                const updatedCards = [...prevCards];
+                updatedCards.pop(); // Remove the last card
+                updatedCards.push(value); // Add the new card value
+                console.log("Updated section0Cards", updatedCards);
+                return updatedCards;
+              });
+            } else if (section_id === 1) {
+              setSection1Cards((prevCards) => {
+                // Remove the last card and add the new one
+                const updatedCards = [...prevCards];
+                updatedCards.pop(); // Remove the last card
+                updatedCards.push(value); // Add the new card value
+                console.log("Updated section1Cards", updatedCards);
+                return updatedCards;
+              });
+            }
+  
+            // Return the same prevId to ensure we don't mess with it
+            return prev;
+          });
         }
+  
+        console.log("result", result);
+  
+        // Check the "result" field and trigger appropriate actions
+        if (result === "0 wins") {
+          setWon(0);
+          stopPush();
+          handleWin();
+          setTimeout(() => {
+            handleReset();            
+           
+          }, 5000);
+        } else if (result === "1 wins") {
+          setWon(1);
+          stopPush();
+          handleWin();
 
-        // PUT/PATCH: Pop the last card and replace it with the updated one
-        if (method === "PUT") {
-          // PUT: Pop the last card and log it
-          if (section_id === 0) {
-            setSection0Cards((prev) => {
-              const updatedCards = [...prev];
-              const poppedCard = updatedCards.pop();
-              updatedCards.push(value); // Push the new card
-              console.log("Popped from section0Cards: ", poppedCard); // Log the popped card
-              return updatedCards;
-            });
-          } else if (section_id === 1) {
-            setSection1Cards((prev) => {
-              const updatedCards = [...prev];
-              const poppedCard = updatedCards.pop();
-              // updatedCards.push(value); // Push the new card
-
-              console.log("Popped from section1Cards: ", poppedCard); // Log the popped card
-              return updatedCards;
-            });
-          }
-          const result = response.data.result;
-
-          // Check the "result" field and give alerts accordingly
-          if (result === "0 wins") {
-            setWon(0);
-            handleWin();
-            stopPush();
-            setTimeout(() => {
-              window.location.reload();
-          }, 7000);
-          } else if (result === "1 wins") {
-            // alert(" 1 wins");
-            setWon(1);
-            handleWin();
-            stopPush();
-            setTimeout(() => {
-              window.location.reload();
-          }, 7000);
-
-            // Trigger confetti on win
-          }
+          setTimeout(() => {
+            handleReset();
+          }, 5000);
         }
       }
     } catch (error) {
       console.error("Error handling card operation:", error);
     }
   };
+
+
   return (
     <div className="min-h-screen bg-[#450A03] ">
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
@@ -210,13 +237,18 @@ const TopMenu = ({ fetchCardData }) => {
 
   const handleCardUpdate = () => {
     if (cardNumber && cardGroup) {
-      const cardValue = `${cardNumber}${cardGroup}`; // Combine card number and group
-      fetchCardData("PUT", cardValue); // Pass the combined card value to the function
+      const cardValue = `${cardNumber}${cardGroup}`;
+      console.log("cardValue", cardValue);
+      
+      const requestBody = { value: cardValue }; // Wrap the card value in an object
+      
+      fetchCardData("PUT", requestBody); // Pass the formatted request body to the function
       setShowCardPopup(false); // Close the popup after updating the card
     } else {
       alert("Please select both card number and group.");
     }
   };
+  
 
   const current_players = [
     "page1",
@@ -270,8 +302,7 @@ const TopMenu = ({ fetchCardData }) => {
       );
       const data = await response.json();
       if (data.message === "Pushing started.") {
-        setIsPushing(true); // Update the state to indicate pushing has started
-      }
+        setIsPushing(true); }
     } catch (error) {
       console.error("Error starting the push:", error);
     }
@@ -287,14 +318,13 @@ const TopMenu = ({ fetchCardData }) => {
       );
       const data = await response.json();
       if (data.message === "Pushing stopped.") {
-        setIsPushing(false); // Update the state to indicate pushing has stopped
+        setIsPushing(false); 
       }
     } catch (error) {
       console.error("Error stopping the push:", error);
     }
   };
   const handleReset = async () => {
-    // setRefreshKey((oldKey) => oldKey + 1);
 
     try {
       const response = await axios.post(
@@ -305,22 +335,11 @@ const TopMenu = ({ fetchCardData }) => {
         console.log("Reset successful:", response.data);
         alert("Collections have been reset!");
 
-        // Emit an event indicating the API call was successful
-        // apiEventEmitter.emit('apiCalled', { success: true, data: response.data });
       } else {
-        console.log("Reset failed with status:", response.status);
-
-        // Emit an event indicating the API call failed
-        // apiEventEmitter.emit('apiCalled', { success: false, status: response.status });
-      }
-
-      // Optionally, if you have a function like refreshPage1(), you can call it here:
-      // refreshPage1();
-    } catch (error) {
+        console.log("Reset failed with status:", response.status);  }
+  } catch (error) {
       console.error("Error resetting collections:", error);
 
-      // Emit an event indicating an error occurred during the API call
-      // apiEventEmitter.emit('apiCalled', { success: false, error: error.message });
     }
     window.location.reload();
   };
@@ -328,16 +347,13 @@ const TopMenu = ({ fetchCardData }) => {
   const [currentPlayers, setCurrentPlayers] = useState([]);
 
   useEffect(() => {
-    // Fetch current players from the API
     const fetchCurrentPlayers = async () => {
       try {
         const response = await fetch(
           "http://127.0.0.1:8000/myapp/api/player-round/"
         );
         const data = await response.json();
-        // console.log(data.currentPlayers);
-        // Check if current players list is provided, else leave empty
-        setCurrentPlayers(data.current_players);
+         setCurrentPlayers(data.current_players);
         console.log(`current player:${currentPlayers}`);
       } catch (error) {
         console.error("Error fetching current players:", error);
@@ -412,15 +428,7 @@ const TopMenu = ({ fetchCardData }) => {
               >
                 Reset
               </button>
-              {/* <button
-                className="block w-full text-left px-4 py-2 hover:bg-red-700"
-                onClick={() => {
-                  // handleSetBidValue();
-                  setShowDropdown(false);
-                }}
-              >
-                Set Bid Value
-              </button> */}
+             
               <button
                 className="block w-full text-left px-4 py-2 hover:bg-red-700"
                 onClick={() => setShowPopup(true)}
@@ -440,15 +448,14 @@ const TopMenu = ({ fetchCardData }) => {
               {showBet && <BetPopUp setShowBet={setShowBet} />}
               <button
                 onClick={startPush}
-                disabled={isPushing} // Disable the start button when pushing is active
-                className={`block w-full text-left px-4 py-2 hover:bg-red-700 ${
-                  isPushing ? "opacity-50" : ""
-                }`}
+                disabled={isPushing}
+                className={`block w-full text-left px-4 py-2 hover:bg-red-700 ${isPushing ? "opacity-50" : ""
+                  }`}
               >
                 Start Automatic Game
               </button>
               <button
-                onClick={() => setShowCardPopup(true)} // Pass the cardValue to the updateCard function
+                onClick={() => setShowCardPopup(true)} 
                 className="block w-full text-left px-4 py-2 hover:bg-red-700"
               >
                 Update Card
@@ -543,29 +550,6 @@ const TopMenu = ({ fetchCardData }) => {
           )}
         </div>
       </div>
-      {/* <div className="font-questrial p-4 rounded-lg shadow-lg text-left md:w-1/4 w-full relative"> */}
-      {/* <div className="flex justify-center items-center mt-3">
-          <input
-            type="text"
-            value={cardValue}
-            onChange={(e) => setCardValue(e.target.value)} // Update state on input change
-            placeholder="Enter Card Value"
-            className="p-2 border border-yellow-600 rounded-md"
-          />
-        </div> */}
-
-      {/* {showDropdown && (
-          <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 bg-[#971909] text-yellow-300 border-2 border-[#D6AB5D] shadow-lg p-2 gap-2">
-            <button
-              onClick={handleCardUpdate} // Pass the cardValue to the updateCard function
-              className="block w-full text-left px-4 py-2 hover:bg-red-700"
-            >
-              Update Card
-            </button>
-          </div>
-        )} */}
-
-      {/* </div> */}
     </div>
   );
 };
@@ -576,10 +560,9 @@ const AndarBaharSection = ({
   setSection0Cards,
   section1Cards,
   setSection1Cards,
-  fetchCardData, // Receive the fetchCardData function
+  fetchCardData, 
 }) => {
-  // const [section0Cards, setSection0Cards] = useState([]);
-  // const [section1Cards, setSection1Cards] = useState([]);
+
   const [revealedCards, setRevealedCards] = useState({});
   const [won, setWon] = useState(-1);
   const [isAutoFetching, setIsAutoFetching] = useState(true);
@@ -590,7 +573,7 @@ const AndarBaharSection = ({
         fetchCardData("POST");
       }, 500);
 
-      return () => clearInterval(interval); // Cleanup on unmount
+      return () => clearInterval(interval); 
     }
   }, [isAutoFetching]);
   const [showModal, setShowModal] = useState(false);
@@ -659,37 +642,40 @@ const AndarBaharSection = ({
   );
 };
 
+
 const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards }) => {
   const [jokerValue, setJokerValue] = useState(null);
-  const { toggleReveal } = useFlip();
+  const isJokerSet = useRef(false); // Ref to track if jokerValue is set
 
   // Function to fetch the joker value from the backend
   const fetchJokerValue = () => {
+    if (isJokerSet.current) return; // Stop if jokerValue is already set
+
     axios
       .get("http://127.0.0.1:8000/myapp/api/get_joker_value/")
       .then((response) => {
         const { value } = response.data.data;
 
-        // If the value is not empty, set the joker value
         if (value) {
-          setJokerValue(value); // Example: "6H"
+          setJokerValue(value); // Set the joker value
+          isJokerSet.current = true; // Mark as set
         } else {
           // Retry after a delay if value is empty
-          setTimeout(fetchJokerValue, 500); // Retry every 3 seconds
+          setTimeout(fetchJokerValue, 500);
         }
       })
       .catch((error) => {
-        // console.error("Error fetching joker value:", error);
-        // Retry after a delay in case of error
-        setTimeout(fetchJokerValue, 500); // Retry every 3 seconds
+        // Handle errors and retry after a delay
+        setTimeout(fetchJokerValue, 500);
       });
   };
 
   useEffect(() => {
-    fetchJokerValue();
+    fetchJokerValue(); // Initial fetch call
   }, []);
+
   return (
-    <div className="flex flex-col justify-start w-full lg:w-1/4 ">
+    <div className="flex flex-col justify-start w-full lg:w-1/4">
       {/* Score */}
       <div className="p-2">
         <div
@@ -699,7 +685,7 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards }) => {
         >
           <div className="flex items-center space-x-2">
             <div className="w-12 h-16 overflow-clip">
-              <img src={a} alt="a" className="w-16 " />
+              <img src={a} alt="a" className="w-16" />
             </div>
             <span className="text-black text-5xl">{section0Cards.length}</span>
           </div>
@@ -711,19 +697,19 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards }) => {
         >
           <div className="flex items-center space-x-2">
             <div className="w-12 h-16 pt-1 overflow-clip">
-              <img src={b} alt="b" className="w-16 " />
+              <img src={b} alt="b" className="w-16" />
             </div>
             <span className="text-black text-5xl">{section1Cards.length}</span>
           </div>
         </div>
       </div>
       {/* Joker Section */}
-      <div className="h-full bg-[#971909] p-4  shadow-lg border-2 border-[#D6AB5D]">
+      <div className="h-full bg-[#971909] p-4 shadow-lg border-2 border-[#D6AB5D]">
         <div className="text-white font-ramaraja text-5xl mt-5 font-bold text-center">
           JOKER
         </div>
         <div className="flex justify-center items-center">
-          <div className="border-dashed border-2 flex justify-center items-center border-yellow-600 rounded-lg w-40 h-60 bg-[#450A0366] mt-4 ">
+          <div className="border-dashed border-2 flex justify-center items-center border-yellow-600 rounded-lg w-40 h-60 bg-[#450A0366] mt-4">
             {jokerValue ? (
               <img
                 src={`./cards/${jokerValue}.png`} // Dynamically update the joker image
@@ -741,5 +727,7 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards }) => {
     </div>
   );
 };
+
+
 
 export default AndarBaharPage;

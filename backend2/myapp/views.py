@@ -71,7 +71,7 @@ def assign_card_to_section(request, section_id):
         # Randomly select a card
         selected_card = random.choice(available_cards)
         
-        # Update the cardState
+        # the cardState
         cardState['revealedCardIds'].append(selected_card['id'])
         cardState['assignedCardIndices'][section_id].append(selected_card['id'])
         cardState['displayedCards'][section_id].append(selected_card)
@@ -465,8 +465,8 @@ def reset_card_state(request):
 
 
 
-card_assignment_counter = 1
-card_assignment_counter2 = 1
+# card_assignment_counter = 1
+# card_assignment_counter2 = 1
 
 
 # Function to extract number from the card name using regex
@@ -474,95 +474,130 @@ def extract_number_from_name(card_name):
     match = re.match(r'(\d+|[JTQKA])', card_name)
     return match.group(0) if match else None
 
+# Define global variables
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+joker = None
+card_assignment_counter = 0
+section_id = 0  # Independent and global
+prev_id = 0  # Global variable to track the previous document ID
+
 @csrf_exempt
 def assign_card_to_section_A(request):
     global joker
     global card_assignment_counter
+    global section_id
+    global prev_id
 
     try:
         # POST Request: Assign a card to a section
         if request.method == "POST":
-            print(f"{card_assignment_counter}: card_assignment_counter")
+            print(f"Card Assignment Counter: {card_assignment_counter}")
 
-            # Fetch the latest unread card value from MongoDB
-            value = None
-            latest_document = mongo_helper.collection.find({"isRead": 0})  # Fetch all unread documents
-            for doc in latest_document:
-                section_id = card_assignment_counter % 2
-                card_assignment_counter += 1
-                value = doc.get('value')
-                print(f"Card value fetched: {value}")
-                card_value = extract_number_from_name(value)
-                print(f"Extracted card value: {card_value}")
+            # Fetch the latest document from MongoDB
+            latest_document = mongo_helper.collection.find_one(sort=[("_id", -1)])  # Fetch the most recent document
+            if not latest_document:
+                return JsonResponse({"error": "No documents found in MongoDB"}, status=500)
 
+            # Extract current document ID and check against prev_id
+            current_id = int(latest_document.get('id'))  # MongoDB IDs are typically ObjectIDs
+
+            # Extract values from the document
+            value = latest_document.get('value')
             if not value:
-                return JsonResponse({"error": "No card value found in MongoDB"}, status=500)
+                return JsonResponse({"error": "Card value is missing in the document"}, status=500)
 
-            # Assign card and check if it's a joker
-            if card_value == joker:
-                result = f"{section_id} wins"
-            else:
-                result = "Card assigned, no match"
+            card_value = extract_number_from_name(value)
+            print(f"Card value fetched: {value}, Extracted card value: {card_value}")
 
-            # Update the document as read
-            mongo_helper.collection.update_one(
-                {"value": value, "isRead": 0},
-                {"$set": {"isRead": 1}}
-            )
-            print(f"Updated card {value} with isRead: 1")
+            result = f"{section_id} wins" if card_value == joker else "Card assigned, no match"
 
-            # Respond with the assigned card and result
-            return JsonResponse({
+            # Handle a new card
+            if prev_id != current_id:
+                prev_id = current_id
+                card_assignment_counter += 1
+                section_id = (section_id - 1) % 2  # Toggle section ID
+                response = {
+                    "success": True,
+                    "card_count": card_assignment_counter,
+                    "section_id": section_id,
+                    "card": card_value,
+                    "value": value,
+                    "result": result,
+                    "joker": joker,
+                    "current_id": current_id,  # Include the current document ID
+                    "prev_id": (prev_id - 1),
+                    "update":0   # Include the previous document ID
+                }
+                return JsonResponse(response)
+
+            # Handle the updated
+            update = latest_document.get('update')
+            if (update==1):
+                response = {
                 "success": True,
+                "card_count": card_assignment_counter,
+                "section_id": section_id,
                 "card": card_value,
                 "value": value,
-                "section_id": section_id,
                 "result": result,
                 "joker": joker,
-            })
+                "current_id": int(current_id),  # Include the current document ID
+                "prev_id": int(prev_id),
+                "update":1   # Include the previous document ID
+            }
+                return JsonResponse(response)
+            #handle the same card no increment
+            response = {
+                "success": True,
+                "card_count": card_assignment_counter,
+                "section_id": section_id,
+                "card": card_value,
+                "value": value,
+                "result": result,
+                "joker": joker,
+                "current_id": int(current_id),  # Include the current document ID
+                "prev_id": int(prev_id),
+                "update":0   # Include the previous document ID
+            }
+            return JsonResponse(response)
 
         # PUT Request: Update the latest card value
         elif request.method == "PUT":
+
             try:
                 # Parse the request body for the new value
                 body = json.loads(request.body)
-                print(f"Request body received: {body}")
+                
                 new_value = body.get("value")
                 if not new_value:
                     return JsonResponse({"error": "New card value is required"}, status=400)
+
+                # Add "update" field to the request body
+                # body["update"] = 1
 
                 # Fetch the latest document from MongoDB
                 latest_document = mongo_helper.collection.find_one(sort=[("_id", -1)])  # Get the latest document by _id
                 if not latest_document:
                     return JsonResponse({"error": "No documents found in MongoDB"}, status=404)
 
-                # Update the latest document with the new value and reset isRead to 0
+                # Update only the value of the latest document without modifying `section_id` or `prev_id`
                 mongo_helper.collection.update_one(
                     {"_id": latest_document["_id"]},  # Use the _id of the latest document
-                    {"$set": {"value": new_value, "isRead": 0}}
+                    {"$set": {"value": new_value, "update": 1}}  # Add "update" field during update
                 )
-                print(f"Updated latest document {latest_document['_id']} with value: {new_value} and reset isRead to 0")
+                print(f"Updated latest document {latest_document['_id']} with value: {new_value}")
 
-                # Simulate assignment logic for the response
-                section_id = card_assignment_counter % 2  # Keep section_id logic consistent
-                card_assignment_counter += 1
-                card_value = extract_number_from_name(new_value)
 
-                # Check if the new card matches the joker
-                if card_value == joker:
-                    result = f"{section_id} wins"
-                else:
-                    result = "Card assigned, no match"
-
-                # Respond with the updated card details and consistent response structure
-                return JsonResponse({
-                    "success": True,
-                    "card": card_value,
-                    "value": new_value,
-                    "section_id": section_id,
-                    "result": result,
-                    "joker": joker,
-                })
+                response = {
+                "success": True,
+                "value": new_value,
+                "update":1   # Include the previous document ID
+            }
+                # Respond with the updated card details
+                return JsonResponse(response)
 
             except Exception as e:
                 print(f"Error in PUT request: {str(e)}")
@@ -730,6 +765,8 @@ def reset_collections(request):
     global card_assignment_counter
     global card_assignment_counter2
     global timestamp
+    global section_id
+    global prev_id
 
     if request.method == 'POST':
         try:
@@ -738,8 +775,10 @@ def reset_collections(request):
             gaj2_collection.delete_many({})
             
             # Reset counters
-            card_assignment_counter = 1
-            card_assignment_counter2 = 1
+            card_assignment_counter = 0
+            card_assignment_counter2 = 0
+            section_id=0
+            prev_id=0
             
             # Set the current timestamp
             timestamp = datetime.datetime.now()
@@ -856,45 +895,63 @@ def get_bet(request):
     return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
 
-pushing_active = True
-shuffled_cards=[]
+import time
+import random
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+pushing_active = True  # Global flag to control the pushing process
+shuffled_cards = []    # Global list to hold shuffled cards
+
+
 def push_to_mongo():
     """
-    Pushes the card data to MongoDB every second until the flag is set to False.
+    Pushes card data to MongoDB. The first card is treated as the "joker", 
+    and the remaining cards are pushed into the collection with incremental IDs.
     """
-    global pushing_active
+    global pushing_active, shuffled_cards
+    id_counter = 1  # Initialize ID counter
 
-     # Shuffle the cards to ensure random order
-    shuffled_cards = cards.copy()  # Create a copy to shuffle
+    # Shuffle cards
+    shuffled_cards = cards.copy()  
     random.shuffle(shuffled_cards)
 
+    # Push the first card as the "joker"
     first_card = shuffled_cards[0]
-    print(f"First card: {first_card['name']}")
+    print(f"Joker card: {first_card['name']}")
     joker_document = {
         "value": first_card["name"],
     }
-    mongo_helper.db.joker.insert_one(joker_document)  # Push to the joker collection
+    mongo_helper.db.joker.insert_one(joker_document)  # Push joker document
     time.sleep(3)
-    # Now push the rest of the cards to the main collection (gaj2)
-    for card in shuffled_cards[1:]:  # Start from the second card
-        if not pushing_active:  # Check if we should stop
-            break  # Stop pushing data if the flag is False
 
-        mongo_helper.collection.insert_one(
-            {"value":  card["name"], "isRead": 0,"isRead2": 0},
-        )
-        time.sleep(3)  # Sleep for 1 second
+    # Push the remaining cards with an incremental ID
+    for card in shuffled_cards[1:]:
+        if not pushing_active:
+            break  # Stop pushing if the flag is set to False
+
+        document = {
+            "value": card["name"],
+            "id": id_counter,
+        }
+        mongo_helper.collection.insert_one(document)
+        id_counter += 1  # Increment the ID counter
+        time.sleep(2)  # Sleep for 3 seconds between inserts
 
 
 @csrf_exempt
 def start_push(request):
     """
-    Starts pushing data to MongoDB every second.
+    API to start pushing card data to MongoDB.
     """
     global pushing_active
-    pushing_active = True  # Set the flag to True to start pushing data
-    push_to_mongo()  # Start pushing the data one by one
-    return JsonResponse({"message": "Pushing started.", "first": shuffled_cards[0]["name"]})
+
+    if request.method == "POST":
+        pushing_active = True  # Set the flag to True to start pushing data
+        push_to_mongo()  # Start the pushing process
+        return JsonResponse({"message": "Pushing started.", "joker": shuffled_cards[0]["name"]})
+    else:
+        return JsonResponse({"error": "Invalid request method. Use POST."}, status=400)
 
 
 @csrf_exempt
@@ -934,8 +991,8 @@ def update_card(request):
                 {
                     "$set": {
                         "value": new_value,
-                        "isRead": 1,
-                        "isRead2": 0
+                        # "isRead": 1,
+                        # "isRead2": 0
                     }
                 }
             )

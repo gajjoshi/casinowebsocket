@@ -1,30 +1,13 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState,useRef } from "react";
 import axios from "axios";
-import useWindowSize from "react-use/lib/useWindowSize";
-import Confetti from "react-confetti";
 import screw from "./assets/screw.png";
-import logo from "./assets/logo.png";
-import menu from "./assets/menu.png";
-import redhat from "./assets/redhat.png";
-import whitehat from "./assets/whitehat.png";
-import sidelogo from "./assets/sidelogo.png";
 import a from "./assets/a.png";
 import b from "./assets/b.png";
 import ocean7 from "./assets/ocean7.png";
-import stat from "./assets/stat2.png";
 import CardFlip from "./components/CardFlip";
-// import { RefreshContext } from "./context/RefreshContext";
 import WinnerModal from "./components/WinnerModal";
 
 const Page1 = () => {
-  const { width, height } = useWindowSize();
-  // const { refreshKey } = useContext(RefreshContext);
-
-  // useEffect(() => {
-  //   // This effect will run when refreshKey changes
-  //   console.log("Page1 re-rendered");
-  // }, [refreshKey]);
-
   return (
     <div className=" ">
       <JokerAndCards />
@@ -40,68 +23,151 @@ const Page1 = () => {
 
 const JokerAndCards = () => {
   const [jokerValue, setJokerValue] = useState(null);
+  const isJokerSet = useRef(false); // Ref to track if jokerValue is set
+
   const [section0Cards, setSection0Cards] = useState([]);
   const [section1Cards, setSection1Cards] = useState([]);
   const [revealedCards, setRevealedCards] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [won, setWon] = useState(-1);
+  const[prevId, setPrevId] = useState(0);
   const fetchJokerValue = () => {
+    if (isJokerSet.current) return; // Stop if jokerValue is already set
+
     axios
       .get("http://127.0.0.1:8000/myapp/api/get_joker_value/")
       .then((response) => {
         const { value } = response.data.data;
+
         if (value) {
-          setJokerValue(value);
+          setJokerValue(value); // Set the joker value
+          isJokerSet.current = true; // Mark as set
         } else {
+          // Retry after a delay if value is empty
           setTimeout(fetchJokerValue, 500);
         }
       })
       .catch((error) => {
-        console.error("Error fetching joker value:", error);
+        // Handle errors and retry after a delay
         setTimeout(fetchJokerValue, 500);
       });
   };
 
-  // Fetch the joker value on component mount
   useEffect(() => {
-    fetchJokerValue();
+    fetchJokerValue(); // Initial fetch call
   }, []);
 
-  const fetchCardData = async () => {
+  const fetchCardData = async (method,cardValue) => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/myapp/api/assign_card_to_player/");
-      if (response.data) {
-        const newCard = response.data.value;
-        const sectionId = response.data.section_id;
-
-        if (sectionId === 0) {
-          setSection0Cards((prev) => [...prev, newCard]);
-          revealCard(newCard, "section0");
-        } else if (sectionId === 1) {
-          setSection1Cards((prev) => [...prev, newCard]);
-          revealCard(newCard, "section1");
+      const config = {
+        url: 'http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/',
+        method: method,
+        headers: {
+          'Content-Type': 'application/json', // Specify content type
+        },
+        data: cardValue, // Example body to send with the request
+      };
+      
+      const response = await fetch(config.url, {
+        method: config.method,
+        headers: config.headers,
+        body: JSON.stringify(config.data), // Stringify the data
+      });
+      const responseData = await response.json();
+      console.log("responseData", responseData);
+  
+      if (responseData.success) {
+        const { value, section_id, current_id, result,update } = responseData;
+        console.log("response", responseData);
+  
+        // POST: Handle new card assignment when prev_id and current_id are different
+        if (update === 0) {
+          // Make sure we work with the latest state of prevId
+          setPrevId((prev) => {
+            if (prev !== current_id) {
+              console.log("current_id:", current_id);
+  
+              // Logic for handling the card addition to the section
+              if (section_id === 0) {
+                setSection0Cards((prevCards) => {
+                  const updatedCards = [...prevCards, value];
+                  console.log("Updated section0Cards", updatedCards); // Log here after the update
+                  return updatedCards;
+                });
+              } else if (section_id === 1) {
+                setSection1Cards((prevCards) => {
+                  const updatedCards = [...prevCards, value];
+                  console.log("Updated section1Cards", updatedCards); // Log here after the update
+                  return updatedCards;
+                });
+              }
+  
+              return prev + 1; // Increment prevId after adding a card
+            } else {
+              console.log("Card already read, no update.");
+              return prev; // No change to prevId
+            }
+          });
+        }if (update === 1 ) {
+          console.log("inside put");
+          setPrevId((prev) => {
+            // Logic for removing the last card (most recent one) and adding the new value
+            if (section_id === 0) {
+              setSection0Cards((prevCards) => {
+                // Remove the last card and add the new one
+                const updatedCards = [...prevCards];
+                updatedCards.pop(); // Remove the last card
+                updatedCards.push(value); // Add the new card value
+                console.log("Updated section0Cards", updatedCards);
+                return updatedCards;
+              });
+            } else if (section_id === 1) {
+              setSection1Cards((prevCards) => {
+                // Remove the last card and add the new one
+                const updatedCards = [...prevCards];
+                updatedCards.pop(); // Remove the last card
+                updatedCards.push(value); // Add the new card value
+                console.log("Updated section1Cards", updatedCards);
+                return updatedCards;
+              });
+            }
+  
+            // Return the same prevId to ensure we don't mess with it
+            return prev;
+          });
         }
-
-        const result = response.data.result;
+  
+        console.log("result", result);
+  
+        // Check the "result" field and trigger appropriate actions
         if (result === "0 wins") {
           setWon(0);
+          stopPush();
           handleWin();
           setTimeout(() => {
-            window.location.reload();
-        }, 7000);
+            handleReset();            
+            // windows.location.reload()
+            // setWon(-1);
+            // handleCloseModal();
+            
+          }, 5000);
         } else if (result === "1 wins") {
           setWon(1);
+          stopPush();
           handleWin();
-          setTimeout(() => {
-            window.location.reload();
-        }, 7000);
 
+          setTimeout(() => {
+            handleReset();
+            // windows.location.reload();
+            // handleCloseModal();
+          }, 5000);
         }
       }
     } catch (error) {
-      console.log(error);
+      console.error("Error handling card operation:", error);
     }
   };
+  
 
   const revealCard = (card, section) => {
     setRevealedCards((prev) => ({ ...prev, [card]: true }));
@@ -111,15 +177,13 @@ const JokerAndCards = () => {
   };
 
   useEffect(() => {
-    const intervalId = setInterval(fetchCardData, 500);
-    return () => clearInterval(intervalId);
+    const interval = setInterval(() => {
+      fetchCardData("POST");
+    }, 500);
+    return () => clearInterval(interval);
   }, []);
 
-  // Periodic check for the reset status
-  // useEffect(() => {
-  //   const resetCheckInterval = setInterval(checkResetStatus, 10000); // Check every second
-  //   return () => clearInterval(resetCheckInterval);
-  // }, []);
+ 
   const handleWin = () => {
     setShowModal(true);
   };

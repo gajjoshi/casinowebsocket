@@ -34,14 +34,14 @@ const AndarBaharPage = () => {
   const stopPush = async () => {
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/stop-push/",
+        "http://127.0.0.1:8000/myapp/api/stop_push/",
         {
           method: "POST",
         }
       );
       const data = await response.json();
       if (data.message === "Pushing stopped.") {
-        setIsPushing(false); // Update the state to indicate pushing has stopped
+        setIsPushing(false); 
       }
     } catch (error) {
       console.error("Error stopping the push:", error);
@@ -160,6 +160,7 @@ const AndarBaharPage = () => {
           setWon(0);
           stopPush();
           handleWin();
+          stopPush();
           setTimeout(() => {
             handleReset();            
            
@@ -168,6 +169,7 @@ const AndarBaharPage = () => {
           setWon(1);
           stopPush();
           handleWin();
+          stopPush();
 
           setTimeout(() => {
             handleReset();
@@ -218,6 +220,9 @@ const TopMenu = ({ fetchCardData }) => {
   const [cardNumber, setCardNumber] = useState(""); // To store the selected card number
   const [cardGroup, setCardGroup] = useState(""); // To store the selected card group
   const [showCardPopup, setShowCardPopup] = useState(false); // To toggle the popup
+  const [showStartDropdown, setShowStartDropdown] = useState(false);
+  const [isPushing, setIsPushing] = useState(false); // To track if pushing is active
+
   const cardNumbers = [
     "A",
     "2",
@@ -290,28 +295,28 @@ const TopMenu = ({ fetchCardData }) => {
       console.error("Error updating the card:", error);
     }
   };
-  const [isPushing, setIsPushing] = useState(false); // To track the pushing status
+  // const [isPushing, setIsPushing] = useState(false); // To track the pushing status
 
-  const startPush = async () => {
-    try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/start-push/",
-        {
-          method: "POST",
-        }
-      );
-      const data = await response.json();
-      if (data.message === "Pushing started.") {
-        setIsPushing(true); }
-    } catch (error) {
-      console.error("Error starting the push:", error);
-    }
-  };
+  // const startPush = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       "http://127.0.0.1:8000/myapp/api/start-push/",
+  //       {
+  //         method: "POST",
+  //       }
+  //     );
+  //     const data = await response.json();
+  //     if (data.message === "Pushing started.") {
+  //       setIsPushing(true); }
+  //   } catch (error) {
+  //     console.error("Error starting the push:", error);
+  //   }
+  // };
 
   const stopPush = async () => {
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/stop-push/",
+        "http://127.0.0.1:8000/myapp/api/stop_push/",
         {
           method: "POST",
         }
@@ -324,6 +329,38 @@ const TopMenu = ({ fetchCardData }) => {
       console.error("Error stopping the push:", error);
     }
   };
+
+  const startPush = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/myapp/api/start_push/", {
+        method: "POST",
+      });
+      const data = await response.json();
+      if (data.message === "Pushing started.") {
+        setIsPushing(true);
+        console.log(data)
+        setShowStartDropdown(true); // Show additional buttons
+      }
+    } catch (error) {
+      console.error("Error starting the push:", error);
+    }
+  };
+
+  const pushCards = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/myapp/api/push_to_mongo/", {
+        method: "POST",
+      });
+      const data = await response.json();
+      if (data.message === "Cards pushed successfully.") {
+        console.log("Cards are being pushed");
+      }
+    } catch (error) {
+      console.error("Error pushing cards:", error);
+    }
+  };
+
+  
   const handleReset = async () => {
 
     try {
@@ -447,13 +484,34 @@ const TopMenu = ({ fetchCardData }) => {
               </button>
               {showBet && <BetPopUp setShowBet={setShowBet} />}
               <button
-                onClick={startPush}
-                disabled={isPushing}
-                className={`block w-full text-left px-4 py-2 hover:bg-red-700 ${isPushing ? "opacity-50" : ""
-                  }`}
-              >
-                Start Automatic Game
-              </button>
+              className="block w-full text-left px-4 py-2 hover:bg-red-700"
+              onClick={() => setShowStartDropdown(true)}
+              disabled={isPushing}
+            >
+              Start Automatic Game
+            </button>
+
+            {showStartDropdown && (
+              <>
+                <button
+                  className="block w-full text-left px-4 py-2 hover:bg-red-700"
+                  onClick={startPush}
+                >
+                  Start push
+                </button><button
+                  className="block w-full text-left px-4 py-2 hover:bg-red-700"
+                  onClick={pushCards}
+                >
+                  Push Cards
+                </button>
+                <button
+                  className="block w-full text-left px-4 py-2 hover:bg-red-700"
+                  onClick={stopPush}
+                >
+                  Stop Push
+                </button>
+              </>
+            )}
               <button
                 onClick={() => setShowCardPopup(true)} 
                 className="block w-full text-left px-4 py-2 hover:bg-red-700"

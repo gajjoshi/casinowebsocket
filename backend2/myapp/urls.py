@@ -21,8 +21,10 @@ urlpatterns = [
     path('api/player-round/', views.player_round, name='player_round'),
     path('api/set-bet/', views.set_bet, name='set_bet'),
     path('api/get-bet/', views.get_bet, name='get_bet'),
-    path('api/start-push/', views.start_push, name='start_push'),
-    path('api/stop-push/', views.stop_push, name='stop_push'),
+    path('api/start_push/', views.start_push, name='start_push'),
+    path('api/push_cards/', views.push_cards, name='push_cards'),
+    path('api/push_to_mongo/', views.push_to_mongo, name='push_to_mongo'),
+    path('api/stop_push/', views.stop_push, name='stop_push'),
     path('api/check-empty/', views.check_empty, name='check_empty'),
     path('api/update_card/', views.update_card, name='update_card'),
     

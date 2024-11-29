@@ -108,7 +108,8 @@ const JokerAndCards = () => {
               return prev; // No change to prevId
             }
           });
-        }if (update === 1 ) {
+        }
+        if (update === 1 ) {
           console.log("inside put");
           setPrevId((prev) => {
             // Logic for removing the last card (most recent one) and adding the new value
@@ -142,6 +143,7 @@ const JokerAndCards = () => {
         // Check the "result" field and trigger appropriate actions
         if (result === "0 wins") {
           setWon(0);
+         
           stopPush();
           handleWin();
           setTimeout(() => {
@@ -150,9 +152,11 @@ const JokerAndCards = () => {
             // setWon(-1);
             // handleCloseModal();
             
-          }, 5000);
+          }, 7000);
         } else if (result === "1 wins") {
           setWon(1);
+          // console.log("inside 1");
+
           stopPush();
           handleWin();
 
@@ -160,7 +164,7 @@ const JokerAndCards = () => {
             handleReset();
             // windows.location.reload();
             // handleCloseModal();
-          }, 5000);
+          }, 7000);
         }
       }
     } catch (error) {
@@ -304,6 +308,7 @@ const Statistics = () => {
         if (data.success) {
           const wins = data.recent_wins.reverse().slice(0, 50);
           setRecentWins(wins);
+          console.log("Recent Wins:", wins);
 
           const sectionWins = wins.reduce((acc, win) => {
             acc[win.section_id] = (acc[win.section_id] || 0) + 1;

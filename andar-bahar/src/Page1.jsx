@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import screw from "./assets/screw.png";
 import a from "./assets/a.png";
@@ -20,7 +20,6 @@ const Page1 = () => {
   );
 };
 
-
 const JokerAndCards = () => {
   const [jokerValue, setJokerValue] = useState(null);
   const isJokerSet = useRef(false); // Ref to track if jokerValue is set
@@ -30,7 +29,7 @@ const JokerAndCards = () => {
   const [revealedCards, setRevealedCards] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [won, setWon] = useState(-1);
-  const[prevId, setPrevId] = useState(0);
+  const [prevId, setPrevId] = useState(0);
   const fetchJokerValue = () => {
     if (isJokerSet.current) return; // Stop if jokerValue is already set
 
@@ -57,17 +56,17 @@ const JokerAndCards = () => {
     fetchJokerValue(); // Initial fetch call
   }, []);
 
-  const fetchCardData = async (method,cardValue) => {
+  const fetchCardData = async (method, cardValue) => {
     try {
       const config = {
-        url: 'http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/',
+        url: "http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/",
         method: method,
         headers: {
-          'Content-Type': 'application/json', // Specify content type
+          "Content-Type": "application/json", // Specify content type
         },
         data: cardValue, // Example body to send with the request
       };
-      
+
       const response = await fetch(config.url, {
         method: config.method,
         headers: config.headers,
@@ -75,18 +74,18 @@ const JokerAndCards = () => {
       });
       const responseData = await response.json();
       console.log("responseData", responseData);
-  
+
       if (responseData.success) {
-        const { value, section_id, current_id, result,update } = responseData;
+        const { value, section_id, current_id, result, update } = responseData;
         console.log("response", responseData);
-  
+
         // POST: Handle new card assignment when prev_id and current_id are different
         if (update === 0) {
           // Make sure we work with the latest state of prevId
           setPrevId((prev) => {
             if (prev !== current_id) {
               console.log("current_id:", current_id);
-  
+
               // Logic for handling the card addition to the section
               if (section_id === 0) {
                 setSection0Cards((prevCards) => {
@@ -101,7 +100,7 @@ const JokerAndCards = () => {
                   return updatedCards;
                 });
               }
-  
+
               return prev + 1; // Increment prevId after adding a card
             } else {
               console.log("Card already read, no update.");
@@ -109,7 +108,7 @@ const JokerAndCards = () => {
             }
           });
         }
-        if (update === 1 ) {
+        if (update === 1) {
           console.log("inside put");
           setPrevId((prev) => {
             // Logic for removing the last card (most recent one) and adding the new value
@@ -132,14 +131,14 @@ const JokerAndCards = () => {
                 return updatedCards;
               });
             }
-  
+
             // Return the same prevId to ensure we don't mess with it
             return prev;
           });
         }
-  
+
         console.log("result", result);
-  
+
         // Check the "result" field and trigger appropriate actions
         if (result === "0 wins") {
           setWon(0);
@@ -171,7 +170,6 @@ const JokerAndCards = () => {
       console.error("Error handling card operation:", error);
     }
   };
-  
 
   const revealCard = (card, section) => {
     setRevealedCards((prev) => ({ ...prev, [card]: true }));
@@ -187,11 +185,10 @@ const JokerAndCards = () => {
     return () => clearInterval(interval);
   }, []);
 
- 
   const handleWin = () => {
     setShowModal(true);
   };
-  
+
   const handleCloseModal = () => {
     setShowModal(false);
   };
@@ -199,7 +196,9 @@ const JokerAndCards = () => {
     <div className="bg-[#8F1504] p-4 border-8 border-yellow-600">
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
       <div className="flex items-center justify-center mx-auto border-b-4 border-yellow-600 pb-4 mb-4">
-        <div className="text-white ml-2 font-ramaraja text-4xl font-bold">JOKER</div>
+        <div className="text-white ml-2 font-ramaraja text-4xl font-bold">
+          JOKER
+        </div>
         <div className="w-40 h-60 border-dashed ml-5 border-2 border-yellow-600 bg-[#450A0366] rounded-lg flex justify-center items-center">
           {jokerValue ? (
             <img
@@ -216,7 +215,9 @@ const JokerAndCards = () => {
       </div>
 
       <div className="flex relative h-1/2 justify-between p-4 border-b-4 border-yellow-600">
-        <div className="text-white font-ramaraja text-6xl mt-10 font-bold mr-4">A</div>
+        <div className="text-white font-ramaraja text-6xl mt-10 font-bold mr-4">
+          A
+        </div>
         <div className="border-dashed border-2 border-yellow-600 rounded-lg w-full h-60 bg-[#450A0366] flex pl-32 items-center justify-left">
           {section0Cards.length > 0 &&
             section0Cards.map((card, index) => (
@@ -233,7 +234,9 @@ const JokerAndCards = () => {
       </div>
 
       <div className="flex h-1/2 justify-center p-4">
-        <div className="text-white font-ramaraja text-6xl mt-10 font-bold mr-4">B</div>
+        <div className="text-white font-ramaraja text-6xl mt-10 font-bold mr-4">
+          B
+        </div>
         <div className="border-dashed border-2 border-yellow-600 rounded-lg w-full h-60 bg-[#450A0366] flex pl-32 items-center justify-left">
           {section1Cards.length > 0 &&
             section1Cards.map((card, index) => (
@@ -251,7 +254,6 @@ const JokerAndCards = () => {
     </div>
   );
 };
-
 
 const BettingSection = () => {
   const [minBet, setMinBet] = useState(null);

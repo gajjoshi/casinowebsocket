@@ -144,23 +144,23 @@ const JokerAndCards = () => {
           setWon(0);
           // stopPush();
           handleWin();
-          // setTimeout(() => {
-          //   handleReset();
-          //   // windows.location.reload()
-          //   // setWon(-1);
-          //   // handleCloseModal();
-
-          // }, 5000);
+          setTimeout(() => {
+            // handleReset();
+            setWon(-1);
+            handleCloseModal();
+            windows.location.reload();
+          }, 5000);
         } else if (result === "1 wins") {
           setWon(1);
           // stopPush();
           handleWin();
 
-          // setTimeout(() => {
-          //   handleReset();
-          //   // windows.location.reload();
-          //   // handleCloseModal();
-          // }, 5000);
+          setTimeout(() => {
+            // handleReset();
+            setWon(-1);
+            handleCloseModal();
+            windows.location.reload();
+          }, 5000);
         }
       }
     } catch (error) {

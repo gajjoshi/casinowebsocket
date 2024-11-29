@@ -904,52 +904,103 @@ pushing_active = True  # Global flag to control the pushing process
 shuffled_cards = []    # Global list to hold shuffled cards
 
 
-def push_to_mongo():
+@csrf_exempt
+def push_cards(request):
+    
+    global pushing_active, shuffled_cards
+
+    if request.method == "POST":
+        pushing_active = True  # Resume pushing cards
+        id_counter = 1  # Initialize ID counter for non-joker cards
+
+        # Ensure joker is already pushed
+        if not mongo_helper.db.joker.find_one():
+            return JsonResponse({"error": "Joker card not defined. Start with start_push."}, status=400)
+
+        # Push remaining cards
+        for card in shuffled_cards[1:]:
+            if not pushing_active:
+                break  # Stop pushing if flag is set to False
+
+            document = {
+                "value": card["name"],
+                "id": id_counter,
+            }
+            mongo_helper.collection.insert_one(document)
+            id_counter += 1  # Increment ID
+            time.sleep(2)  # Control the pace of pushing
+
+        return JsonResponse({"message": "Cards pushed successfully."})
+    else:
+        return JsonResponse({"error": "Invalid request method. Use POST."}, status=400)
+
+@csrf_exempt
+def push_to_mongo(request):
     """
     Pushes card data to MongoDB. The first card is treated as the "joker", 
     and the remaining cards are pushed into the collection with incremental IDs.
     """
     global pushing_active, shuffled_cards
-    id_counter = 1  # Initialize ID counter
+    id_counter = 1
+    pushing_active = True  # Ensure the game is paused after the joker
+
 
     # Shuffle cards
-    shuffled_cards = cards.copy()  
-    random.shuffle(shuffled_cards)
+    # shuffled_cards = cards.copy()  
+    # random.shuffle(shuffled_cards)
 
     # Push the first card as the "joker"
-    first_card = shuffled_cards[0]
-    print(f"Joker card: {first_card['name']}")
-    joker_document = {
-        "value": first_card["name"],
-    }
-    mongo_helper.db.joker.insert_one(joker_document)  # Push joker document
-    time.sleep(3)
+    # first_card = shuffled_cards[0]
+    # print(f"Joker card: {first_card['name']}")
+    # joker_document = {
+    #     "value": first_card["name"],
+    # }
+    # mongo_helper.db.joker.insert_one(joker_document)  # Push joker document
+    # time.sleep(3)
 
     # Push the remaining cards with an incremental ID
-    for card in shuffled_cards[1:]:
-        if not pushing_active:
-            break  # Stop pushing if the flag is set to False
+    if request.method == "POST":
+        for card in shuffled_cards[1:]:
+            if not pushing_active:
+                break  # Stop pushing if the flag is set to False
 
-        document = {
-            "value": card["name"],
-            "id": id_counter,
-        }
-        mongo_helper.collection.insert_one(document)
-        id_counter += 1  # Increment the ID counter
-        time.sleep(2)  # Sleep for 3 seconds between inserts
+            document = {
+                "value": card["name"],
+                "id": id_counter,
+            }
+            mongo_helper.collection.insert_one(document)
+            id_counter += 1  # Increment the ID counter
+            time.sleep(2)  # Sleep for 3 seconds between inserts
+        return JsonResponse({"message": "Cards pushed successfully."})
+    else:
+        return JsonResponse({"error": "Invalid request method. Use POST."}, status=400)
+
 
 
 @csrf_exempt
 def start_push(request):
     """
-    API to start pushing card data to MongoDB.
+    API to start the game by pushing only the joker card to MongoDB.
     """
-    global pushing_active
+    global pushing_active, shuffled_cards
 
     if request.method == "POST":
-        pushing_active = True  # Set the flag to True to start pushing data
-        push_to_mongo()  # Start the pushing process
-        return JsonResponse({"message": "Pushing started.", "joker": shuffled_cards[0]["name"]})
+        pushing_active = False  # Ensure the game is paused after the joker
+
+        # Shuffle the cards if not already shuffled
+        if not shuffled_cards:
+            shuffled_cards = cards.copy()
+            random.shuffle(shuffled_cards)
+
+        # Push the first card as the joker
+        joker_card = shuffled_cards[0]
+        print(f"Joker card: {joker_card['name']}")
+        joker_document = {
+            "value": joker_card["name"],
+        }
+        mongo_helper.db.joker.insert_one(joker_document)  # Push joker document
+
+        return JsonResponse({"message": "Joker pushed.", "joker": joker_card["name"]})
     else:
         return JsonResponse({"error": "Invalid request method. Use POST."}, status=400)
 

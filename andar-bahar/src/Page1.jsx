@@ -142,7 +142,8 @@ const JokerAndCards = () => {
         // Check the "result" field and trigger appropriate actions
         if (result === "0 wins") {
           setWon(0);
-          // stopPush();
+
+          stopPush();
           handleWin();
           setTimeout(() => {
             // handleReset();
@@ -152,7 +153,9 @@ const JokerAndCards = () => {
           }, 5000);
         } else if (result === "1 wins") {
           setWon(1);
-          // stopPush();
+          // console.log("inside 1");
+
+          stopPush();
           handleWin();
 
           setTimeout(() => {
@@ -307,6 +310,7 @@ const Statistics = () => {
         if (data.success) {
           const wins = data.recent_wins.reverse().slice(0, 50);
           setRecentWins(wins);
+          console.log("Recent Wins:", wins);
 
           const sectionWins = wins.reduce((acc, win) => {
             acc[win.section_id] = (acc[win.section_id] || 0) + 1;

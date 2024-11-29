@@ -1,4 +1,4 @@
-import React, { useContext,useRef } from "react";
+import React, { useContext, useRef } from "react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import screw from "./assets/screw.png";
@@ -41,7 +41,7 @@ const AndarBaharPage = () => {
       );
       const data = await response.json();
       if (data.message === "Pushing stopped.") {
-        setIsPushing(false); 
+        setIsPushing(false);
       }
     } catch (error) {
       console.error("Error stopping the push:", error);
@@ -51,7 +51,6 @@ const AndarBaharPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [prevId, setPrevId] = useState(0);
   const handleReset = async () => {
-
     try {
       const response = await axios.post(
         "http://127.0.0.1:8000/myapp/api/reset_collections/"
@@ -60,30 +59,28 @@ const AndarBaharPage = () => {
       if (response.status === 200) {
         console.log("Reset successful:", response.data);
         alert("Collections have been reset!");
-
       } else {
-        console.log("Reset failed with status:", response.status);  }
-  } catch (error) {
+        console.log("Reset failed with status:", response.status);
+      }
+    } catch (error) {
       console.error("Error resetting collections:", error);
-
     }
     window.location.reload();
   };
-  const fetchCardData = async (method,cardValue) => {
+  const fetchCardData = async (method, cardValue) => {
     try {
       const url = "http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/";
-  console.log("cardValue2",  JSON.stringify(cardValue));
+      console.log("cardValue2", JSON.stringify(cardValue));
 
-    
       const config = {
-        url: 'http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/',
+        url: "http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/",
         method: method,
         headers: {
-          'Content-Type': 'application/json', // Specify content type
+          "Content-Type": "application/json", // Specify content type
         },
         data: cardValue, // Example body to send with the request
       };
-      
+
       const response = await fetch(config.url, {
         method: config.method,
         headers: config.headers,
@@ -91,18 +88,18 @@ const AndarBaharPage = () => {
       });
       const responseData = await response.json();
       console.log("responseData", responseData);
-  
+
       if (responseData.success) {
-        const { value, section_id, current_id, result,update } = responseData;
+        const { value, section_id, current_id, result, update } = responseData;
         console.log("response", responseData);
-  
+
         // POST: Handle new card assignment when prev_id and current_id are different
         if (update === 0) {
           // Make sure we work with the latest state of prevId
           setPrevId((prev) => {
             if (prev !== current_id) {
               console.log("current_id:", current_id);
-  
+
               // Logic for handling the card addition to the section
               if (section_id === 0) {
                 setSection0Cards((prevCards) => {
@@ -117,14 +114,15 @@ const AndarBaharPage = () => {
                   return updatedCards;
                 });
               }
-  
+
               return prev + 1; // Increment prevId after adding a card
             } else {
               console.log("Card already read, no update.");
               return prev; // No change to prevId
             }
           });
-        }if (update === 1 ) {
+        }
+        if (update === 1) {
           console.log("inside put");
           setPrevId((prev) => {
             // Logic for removing the last card (most recent one) and adding the new value
@@ -147,14 +145,14 @@ const AndarBaharPage = () => {
                 return updatedCards;
               });
             }
-  
+
             // Return the same prevId to ensure we don't mess with it
             return prev;
           });
         }
-  
+
         console.log("result", result);
-  
+
         // Check the "result" field and trigger appropriate actions
         if (result === "0 wins") {
           setWon(0);
@@ -162,8 +160,7 @@ const AndarBaharPage = () => {
           handleWin();
           stopPush();
           setTimeout(() => {
-            handleReset();            
-           
+            handleReset();
           }, 5000);
         } else if (result === "1 wins") {
           setWon(1);
@@ -180,7 +177,6 @@ const AndarBaharPage = () => {
       console.error("Error handling card operation:", error);
     }
   };
-
 
   return (
     <div className="min-h-screen bg-[#450A03] ">
@@ -244,16 +240,15 @@ const TopMenu = ({ fetchCardData }) => {
     if (cardNumber && cardGroup) {
       const cardValue = `${cardNumber}${cardGroup}`;
       console.log("cardValue", cardValue);
-      
+
       const requestBody = { value: cardValue }; // Wrap the card value in an object
-      
+
       fetchCardData("PUT", requestBody); // Pass the formatted request body to the function
       setShowCardPopup(false); // Close the popup after updating the card
     } else {
       alert("Please select both card number and group.");
     }
   };
-  
 
   const current_players = [
     "page1",
@@ -323,7 +318,7 @@ const TopMenu = ({ fetchCardData }) => {
       );
       const data = await response.json();
       if (data.message === "Pushing stopped.") {
-        setIsPushing(false); 
+        setIsPushing(false);
       }
     } catch (error) {
       console.error("Error stopping the push:", error);
@@ -332,13 +327,16 @@ const TopMenu = ({ fetchCardData }) => {
 
   const startPush = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/myapp/api/start_push/", {
-        method: "POST",
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/myapp/api/start_push/",
+        {
+          method: "POST",
+        }
+      );
       const data = await response.json();
       if (data.message === "Pushing started.") {
         setIsPushing(true);
-        console.log(data)
+        console.log(data);
         setShowStartDropdown(true); // Show additional buttons
       }
     } catch (error) {
@@ -348,9 +346,12 @@ const TopMenu = ({ fetchCardData }) => {
 
   const pushCards = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/myapp/api/push_to_mongo/", {
-        method: "POST",
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/myapp/api/push_to_mongo/",
+        {
+          method: "POST",
+        }
+      );
       const data = await response.json();
       if (data.message === "Cards pushed successfully.") {
         console.log("Cards are being pushed");
@@ -360,9 +361,7 @@ const TopMenu = ({ fetchCardData }) => {
     }
   };
 
-  
   const handleReset = async () => {
-
     try {
       const response = await axios.post(
         "http://127.0.0.1:8000/myapp/api/reset_collections/"
@@ -371,12 +370,11 @@ const TopMenu = ({ fetchCardData }) => {
       if (response.status === 200) {
         console.log("Reset successful:", response.data);
         alert("Collections have been reset!");
-
       } else {
-        console.log("Reset failed with status:", response.status);  }
-  } catch (error) {
+        console.log("Reset failed with status:", response.status);
+      }
+    } catch (error) {
       console.error("Error resetting collections:", error);
-
     }
     window.location.reload();
   };
@@ -390,7 +388,7 @@ const TopMenu = ({ fetchCardData }) => {
           "http://127.0.0.1:8000/myapp/api/player-round/"
         );
         const data = await response.json();
-         setCurrentPlayers(data.current_players);
+        setCurrentPlayers(data.current_players);
         console.log(`current player:${currentPlayers}`);
       } catch (error) {
         console.error("Error fetching current players:", error);
@@ -465,7 +463,6 @@ const TopMenu = ({ fetchCardData }) => {
               >
                 Reset
               </button>
-             
               <button
                 className="block w-full text-left px-4 py-2 hover:bg-red-700"
                 onClick={() => setShowPopup(true)}
@@ -484,36 +481,49 @@ const TopMenu = ({ fetchCardData }) => {
               </button>
               {showBet && <BetPopUp setShowBet={setShowBet} />}
               <button
-              className="block w-full text-left px-4 py-2 hover:bg-red-700"
-              onClick={() => setShowStartDropdown(true)}
-              disabled={isPushing}
-            >
-              Start Automatic Game
-            </button>
-
-            {showStartDropdown && (
-              <>
-                <button
-                  className="block w-full text-left px-4 py-2 hover:bg-red-700"
-                  onClick={startPush}
-                >
-                  Start push
-                </button><button
-                  className="block w-full text-left px-4 py-2 hover:bg-red-700"
-                  onClick={pushCards}
-                >
-                  Push Cards
-                </button>
-                <button
-                  className="block w-full text-left px-4 py-2 hover:bg-red-700"
-                  onClick={stopPush}
-                >
-                  Stop Push
-                </button>
-              </>
-            )}
+                className="block w-full text-left px-4 py-2 hover:bg-red-700"
+                onClick={() => setShowStartDropdown(true)}
+                disabled={isPushing}
+              >
+                Start Automatic Game
+              </button>
+              {showStartDropdown && (
+                <div className="absolute top-0 right-0 bg-black bg-opacity-50 flex  justify-center items-center z-50">
+                  <div className="bg-[#971909] border-2 border-yellow-600 rounded-lg p-6 w-60 shadow-lg">
+                    <h2 className="text-yellow-300 text-lg mb-4 text-center">
+                      Automatic Game Options
+                    </h2>
+                    <div className="flex flex-col gap-4">
+                      <button
+                        className="w-full bg-red-700 text-yellow-300 px-4 py-2 rounded-md hover:bg-red-800"
+                        onClick={startPush}
+                      >
+                        Start Push
+                      </button>
+                      <button
+                        className="w-full bg-red-700 text-yellow-300 px-4 py-2 rounded-md hover:bg-red-800"
+                        onClick={pushCards}
+                      >
+                        Push Cards
+                      </button>
+                      <button
+                        className="w-full bg-red-700 text-yellow-300 px-4 py-2 rounded-md hover:bg-red-800"
+                        onClick={stopPush}
+                      >
+                        Stop Push
+                      </button>
+                      <button
+                        className="w-full bg-gray-600 text-yellow-300 px-4 py-2 rounded-md hover:bg-gray-700"
+                        onClick={() => setShowStartDropdown(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               <button
-                onClick={() => setShowCardPopup(true)} 
+                onClick={() => setShowCardPopup(true)}
                 className="block w-full text-left px-4 py-2 hover:bg-red-700"
               >
                 Update Card
@@ -618,9 +628,8 @@ const AndarBaharSection = ({
   setSection0Cards,
   section1Cards,
   setSection1Cards,
-  fetchCardData, 
+  fetchCardData,
 }) => {
-
   const [revealedCards, setRevealedCards] = useState({});
   const [won, setWon] = useState(-1);
   const [isAutoFetching, setIsAutoFetching] = useState(true);
@@ -631,7 +640,7 @@ const AndarBaharSection = ({
         fetchCardData("POST");
       }, 500);
 
-      return () => clearInterval(interval); 
+      return () => clearInterval(interval);
     }
   }, [isAutoFetching]);
   const [showModal, setShowModal] = useState(false);
@@ -699,7 +708,6 @@ const AndarBaharSection = ({
     </div>
   );
 };
-
 
 const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards }) => {
   const [jokerValue, setJokerValue] = useState(null);
@@ -785,7 +793,5 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards }) => {
     </div>
   );
 };
-
-
 
 export default AndarBaharPage;

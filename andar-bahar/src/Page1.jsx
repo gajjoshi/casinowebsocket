@@ -143,26 +143,26 @@ const JokerAndCards = () => {
         if (result === "0 wins") {
           setWon(0);
 
-          stopPush();
+          // stopPush();
           handleWin();
           setTimeout(() => {
             // handleReset();
             setWon(-1);
             handleCloseModal();
-            windows.location.reload();
+            window.location.reload();
           }, 5000);
         } else if (result === "1 wins") {
           setWon(1);
           // console.log("inside 1");
 
-          stopPush();
+          // stopPush();
           handleWin();
 
           setTimeout(() => {
             // handleReset();
             setWon(-1);
             handleCloseModal();
-            windows.location.reload();
+            window.location.reload();
           }, 5000);
         }
       }

@@ -183,6 +183,7 @@ const AndarBaharPage = () => {
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
 
       <TopMenu
+        sectionId={sectionId}
         fetchCardData={fetchCardData}
         cardValue={cardValue}
         setCardValue={setCardValue}
@@ -207,7 +208,7 @@ const AndarBaharPage = () => {
   );
 };
 const allPlayers = ["page1", "page2", "page3", "page4", "page5", "page6"];
-const TopMenu = ({ fetchCardData }) => {
+const TopMenu = ({ sectionId, fetchCardData }) => {
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
@@ -216,6 +217,7 @@ const TopMenu = ({ fetchCardData }) => {
   const [cardNumber, setCardNumber] = useState(""); // To store the selected card number
   const [cardGroup, setCardGroup] = useState(""); // To store the selected card group
   const [showCardPopup, setShowCardPopup] = useState(false); // To toggle the popup
+  const [showAddCardPopup, setShowAddCardPopup] = useState(false); // To toggle the popup
   const [showStartDropdown, setShowStartDropdown] = useState(false);
   const [isPushing, setIsPushing] = useState(false); // To track if pushing is active
 
@@ -235,6 +237,51 @@ const TopMenu = ({ fetchCardData }) => {
     "K",
   ];
   const cardGroups = ["H", "S", "D", "C"];
+
+  const addCard = async () => {
+    const requestBody = {
+      value: cardValue,
+      id: sectionId,
+    };
+
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/myapp/api/add-card/",
+        {
+          method: "POST", // Use POST to send data
+          headers: {
+            "Content-Type": "application/json", // Ensure the server knows you're sending JSON
+          },
+          body: JSON.stringify(requestBody), // Convert the request body to JSON
+        }
+      );
+
+      if (!response.ok) {
+        // Handle HTTP errors
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to add card");
+      }
+
+      const data = await response.json();
+      console.log("Card added successfully:", data);
+      return data;
+    } catch (error) {
+      console.error("Error adding card:", error.message);
+      alert(error.message); // Show user-friendly error message
+      return null;
+    }
+  };
+
+  const handleCardAdd = () => {
+    if (cardNumber && cardGroup) {
+      const cardValue = `${cardNumber}${cardGroup}`;
+      console.log("cardValue", cardValue);
+      addCard();
+      setShowAddCardPopup(false); // Close the popup after updating the card
+    } else {
+      alert("Please select both card number and group.");
+    }
+  };
 
   const handleCardUpdate = () => {
     if (cardNumber && cardGroup) {
@@ -614,6 +661,98 @@ const TopMenu = ({ fetchCardData }) => {
                   </div>
                 </div>
               )}
+              <button
+                onClick={() => setShowCardPopup(true)}
+                className="block w-full text-left px-4 py-2 hover:bg-red-700"
+              >
+                Add Card
+              </button>{" "}
+              {showAddCardPopup && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                  <div className="bg-[#971909] border-2 border-yellow-600 rounded-lg p-6 w-80 shadow-lg">
+                    <h2 className="text-yellow-300 text-lg mb-4 text-center">
+                      Select Card
+                    </h2>
+
+                    <div className="mb-4">
+                      <label
+                        htmlFor="card-number"
+                        className="block text-yellow-300 mb-2"
+                      >
+                        Select Card Number
+                      </label>
+                      <select
+                        id="card-number"
+                        value={cardNumber}
+                        onChange={(e) => setCardNumber(e.target.value)}
+                        className="p-2 w-full border bg-[#971909] text-yellow-300 border-yellow-600 rounded-md"
+                      >
+                        <option
+                          value=""
+                          className="bg-[#971909] text-yellow-300"
+                        >
+                          -- Select Number --
+                        </option>
+                        {cardNumbers.map((number) => (
+                          <option
+                            key={number}
+                            value={number}
+                            className="bg-[#971909] text-yellow-300 hover:bg-yellow-700 hover:text-white"
+                          >
+                            {number}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="mb-4">
+                      <label
+                        htmlFor="card-group"
+                        className="block text-yellow-300 mb-2"
+                      >
+                        Select Card Group
+                      </label>
+                      <select
+                        id="card-group"
+                        value={cardGroup}
+                        onChange={(e) => setCardGroup(e.target.value)}
+                        className="p-2 w-full border bg-[#971909] text-yellow-300 border-yellow-600 rounded-md"
+                      >
+                        <option
+                          value=""
+                          className="bg-[#971909] text-yellow-300"
+                        >
+                          -- Select Group --
+                        </option>
+                        {cardGroups.map((group) => (
+                          <option
+                            key={group}
+                            value={group}
+                            className="bg-[#971909] text-yellow-300 hover:bg-yellow-700 hover:text-white"
+                          >
+                            {group}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex justify-between gap-2">
+                      <button
+                        onClick={() => setShowAddCardPopup(false)}
+                        className="bg-gray-600 text-yellow-300 px-4 py-2 rounded-md hover:bg-gray-700"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleCardAdd}
+                        className="bg-red-700 text-yellow-300 px-4 py-2 rounded-md hover:bg-red-800"
+                      >
+                        Confirm
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -714,11 +853,10 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards }) => {
   const isJokerSet = useRef(false);
   // console.log("Rendering ScoreAndJokerSection with sectionId:", sectionId);
 
-
   // Function to fetch the joker value from the backend
   const fetchJokerValue = () => {
     if (isJokerSet.current) return;
-    console.log("section id for color",sectionId) // Ref to track if jokerValue is set
+    console.log("section id for color", sectionId); // Ref to track if jokerValue is set
     // Stop if jokerValue is already set
 
     axios

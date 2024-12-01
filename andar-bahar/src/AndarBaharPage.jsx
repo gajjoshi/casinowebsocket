@@ -238,7 +238,7 @@ const TopMenu = ({ sectionId, fetchCardData }) => {
   ];
   const cardGroups = ["H", "S", "D", "C"];
 
-  const addCard = async () => {
+  const addCard = async (cardValue) => {
     const requestBody = {
       value: cardValue,
       id: sectionId,
@@ -276,7 +276,7 @@ const TopMenu = ({ sectionId, fetchCardData }) => {
     if (cardNumber && cardGroup) {
       const cardValue = `${cardNumber}${cardGroup}`;
       console.log("cardValue", cardValue);
-      addCard();
+      addCard(cardValue);
       setShowAddCardPopup(false); // Close the popup after updating the card
     } else {
       alert("Please select both card number and group.");

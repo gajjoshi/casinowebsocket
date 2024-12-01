@@ -662,7 +662,7 @@ const TopMenu = ({ sectionId, fetchCardData }) => {
                 </div>
               )}
               <button
-                onClick={() => setShowCardPopup(true)}
+                onClick={() => setShowAddCardPopup(true)}
                 className="block w-full text-left px-4 py-2 hover:bg-red-700"
               >
                 Add Card

@@ -58,7 +58,7 @@ const AndarBaharPage = () => {
 
       if (response.status === 200) {
         console.log("Reset successful:", response.data);
-        alert("Collections have been reset!");
+        // alert("Collections have been reset!");
       } else {
         console.log("Reset failed with status:", response.status);
       }
@@ -70,7 +70,7 @@ const AndarBaharPage = () => {
   const fetchCardData = async (method, cardValue) => {
     try {
       const url = "http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/";
-      console.log("cardValue2", JSON.stringify(cardValue));
+      // console.log("cardValue2", JSON.stringify(cardValue));
 
       const config = {
         url: "http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/",
@@ -91,7 +91,7 @@ const AndarBaharPage = () => {
 
       if (responseData.success) {
         const { value, section_id, current_id, result, update } = responseData;
-        console.log("response", responseData);
+        // console.log("response", responseData);
 
         // POST: Handle new card assignment when prev_id and current_id are different
         if (update === 0) {
@@ -99,7 +99,7 @@ const AndarBaharPage = () => {
           setPrevId((prev) => {
             if (prev !== current_id) {
               console.log("current_id:", current_id);
-
+              setSectionId(section_id);
               // Logic for handling the card addition to the section
               if (section_id === 0) {
                 setSection0Cards((prevCards) => {
@@ -369,7 +369,7 @@ const TopMenu = ({ fetchCardData }) => {
 
       if (response.status === 200) {
         console.log("Reset successful:", response.data);
-        alert("Collections have been reset!");
+        // alert("Collections have been reset!");
       } else {
         console.log("Reset failed with status:", response.status);
       }
@@ -711,11 +711,15 @@ const AndarBaharSection = ({
 
 const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards }) => {
   const [jokerValue, setJokerValue] = useState(null);
-  const isJokerSet = useRef(false); // Ref to track if jokerValue is set
+  const isJokerSet = useRef(false);
+  // console.log("Rendering ScoreAndJokerSection with sectionId:", sectionId);
+
 
   // Function to fetch the joker value from the backend
   const fetchJokerValue = () => {
-    if (isJokerSet.current) return; // Stop if jokerValue is already set
+    if (isJokerSet.current) return;
+    console.log("section id for color",sectionId) // Ref to track if jokerValue is set
+    // Stop if jokerValue is already set
 
     axios
       .get("http://127.0.0.1:8000/myapp/api/get_joker_value/")
@@ -727,12 +731,12 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards }) => {
           isJokerSet.current = true; // Mark as set
         } else {
           // Retry after a delay if value is empty
-          setTimeout(fetchJokerValue, 500);
+          setTimeout(fetchJokerValue, 2000);
         }
       })
       .catch((error) => {
         // Handle errors and retry after a delay
-        setTimeout(fetchJokerValue, 500);
+        setTimeout(fetchJokerValue, 2000);
       });
   };
 

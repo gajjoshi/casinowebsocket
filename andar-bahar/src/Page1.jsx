@@ -9,14 +9,14 @@ import WinnerModal from "./components/WinnerModal";
 
 const Page1 = () => {
   return (
-    <div className=" ">
-      <JokerAndCards />
-      <div className="flex justify-between   bg-[url('./assets/wood.png')]  shadow-lg border-2 border-yellow-600">
-        <BettingSection />
-        <Statistics />
-        <AndarBaharButtons />
-      </div>
+    <div className="h-[92vh] overflow-clip ">
+    <JokerAndCards />
+    <div className="flex h-[13vh] justify-between   bg-[url('./assets/wood.png')]  shadow-lg border-2 border-yellow-600">
+      <BettingSection />
+      <Statistics />
+      <AndarBaharButtons />
     </div>
+  </div>
   );
 };
 
@@ -31,7 +31,7 @@ const JokerAndCards = () => {
   const [won, setWon] = useState(-1);
   const [prevId, setPrevId] = useState(0);
   const fetchJokerValue = () => {
-    if (isJokerSet.current) return; // Stop if jokerValue is already set
+    // if (isJokerSet.current) return; // Stop if jokerValue is already set
 
     axios
       .get("http://127.0.0.1:8000/myapp/api/get_joker_value/")
@@ -39,24 +39,27 @@ const JokerAndCards = () => {
         const { value } = response.data.data;
 
         if (value) {
-          setJokerValue(value); // Set the joker value
+          setJokerValue(value);
+          console.log("joker found:,",value) // Set the joker value
           isJokerSet.current = true; // Mark as set
         } else {
           // Retry after a delay if value is empty
-          setTimeout(fetchJokerValue, 500);
+          setTimeout(fetchJokerValue, 1000);
         }
       })
       .catch((error) => {
         // Handle errors and retry after a delay
-        setTimeout(fetchJokerValue, 500);
+        setTimeout(fetchJokerValue, 2000);
       });
   };
 
   useEffect(() => {
     fetchJokerValue(); // Initial fetch call
   }, []);
+  let hasRefreshed = false; // Persistent variable outside the function
 
   const fetchCardData = async (method, cardValue) => {
+
     try {
       const config = {
         url: "http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/",
@@ -66,7 +69,7 @@ const JokerAndCards = () => {
         },
         data: cardValue, // Example body to send with the request
       };
-
+  
       const response = await fetch(config.url, {
         method: config.method,
         headers: config.headers,
@@ -74,102 +77,100 @@ const JokerAndCards = () => {
       });
       const responseData = await response.json();
       console.log("responseData", responseData);
-
-      if (responseData.success) {
-        const { value, section_id, current_id, result, update } = responseData;
-        console.log("response", responseData);
-
-        // POST: Handle new card assignment when prev_id and current_id are different
-        if (update === 0) {
-          // Make sure we work with the latest state of prevId
-          setPrevId((prev) => {
-            if (prev !== current_id) {
-              console.log("current_id:", current_id);
-
-              // Logic for handling the card addition to the section
+      if (responseData.error === "No documents found in MongoDB") {
+        console.log("in no doc")
+        if (!hasRefreshed) {
+          console.error("Error: No documents found in MongoDB");
+          hasRefreshed = true; 
+          setTimeout(() => {
+            window.location.reload(); // Reload after a delay
+          }, 5000); // Set the flag to prevent further reloads
+          // window.location.reload(); // Reload only once
+        }
+      } 
+      if (response.ok) {
+        if (responseData.success) {
+          const { value, section_id, current_id, result, update } = responseData;
+          console.log("response", responseData);
+  
+          if (update === 0) {
+            setPrevId((prev) => {
+              if (prev !== current_id) {
+                console.log("current_id:", current_id);
+  
+                if (section_id === 0) {
+                  setSection0Cards((prevCards) => {
+                    const updatedCards = [...prevCards, value];
+                    console.log("Updated section0Cards", updatedCards);
+                    return updatedCards;
+                  });
+                } else if (section_id === 1) {
+                  setSection1Cards((prevCards) => {
+                    const updatedCards = [...prevCards, value];
+                    console.log("Updated section1Cards", updatedCards);
+                    return updatedCards;
+                  });
+                }
+  
+                return prev + 1;
+              } else {
+                console.log("Card already read, no update.");
+                return prev;
+              }
+            });
+          }
+  
+          if (update === 1) {
+            console.log("inside put");
+            setPrevId((prev) => {
               if (section_id === 0) {
                 setSection0Cards((prevCards) => {
-                  const updatedCards = [...prevCards, value];
-                  console.log("Updated section0Cards", updatedCards); // Log here after the update
+                  const updatedCards = [...prevCards];
+                  updatedCards.pop();
+                  updatedCards.push(value);
+                  console.log("Updated section0Cards", updatedCards);
                   return updatedCards;
                 });
               } else if (section_id === 1) {
                 setSection1Cards((prevCards) => {
-                  const updatedCards = [...prevCards, value];
-                  console.log("Updated section1Cards", updatedCards); // Log here after the update
+                  const updatedCards = [...prevCards];
+                  updatedCards.pop();
+                  updatedCards.push(value);
+                  console.log("Updated section1Cards", updatedCards);
                   return updatedCards;
                 });
               }
-
-              return prev + 1; // Increment prevId after adding a card
-            } else {
-              console.log("Card already read, no update.");
-              return prev; // No change to prevId
-            }
-          });
-        }
-        if (update === 1) {
-          console.log("inside put");
-          setPrevId((prev) => {
-            // Logic for removing the last card (most recent one) and adding the new value
-            if (section_id === 0) {
-              setSection0Cards((prevCards) => {
-                // Remove the last card and add the new one
-                const updatedCards = [...prevCards];
-                updatedCards.pop(); // Remove the last card
-                updatedCards.push(value); // Add the new card value
-                console.log("Updated section0Cards", updatedCards);
-                return updatedCards;
-              });
-            } else if (section_id === 1) {
-              setSection1Cards((prevCards) => {
-                // Remove the last card and add the new one
-                const updatedCards = [...prevCards];
-                updatedCards.pop(); // Remove the last card
-                updatedCards.push(value); // Add the new card value
-                console.log("Updated section1Cards", updatedCards);
-                return updatedCards;
-              });
-            }
-
-            // Return the same prevId to ensure we don't mess with it
-            return prev;
-          });
-        }
-
-        console.log("result", result);
-
-        // Check the "result" field and trigger appropriate actions
-        if (result === "0 wins") {
-          setWon(0);
-
-          // stopPush();
-          handleWin();
-          setTimeout(() => {
-            // handleReset();
-            setWon(-1);
-            handleCloseModal();
-            window.location.reload();
-          }, 5000);
-        } else if (result === "1 wins") {
-          setWon(1);
-          // console.log("inside 1");
-
-          // stopPush();
-          handleWin();
-
-          setTimeout(() => {
-            // handleReset();
-            setWon(-1);
-            handleCloseModal();
-            window.location.reload();
-          }, 5000);
-        }
+  
+              return prev;
+            });
+          }
+  
+          console.log("result", result);
+  
+          if (result === "0 wins") {
+            setWon(0);
+            handleWin();
+            setTimeout(() => {
+              setWon(-1);
+              handleCloseModal();
+              window.location.reload();
+            }, 5000);
+          } else if (result === "1 wins") {
+            setWon(1);
+            handleWin();
+            setTimeout(() => {
+              setWon(-1);
+              handleCloseModal();
+              window.location.reload();
+            }, 5000);
+          }
+        } 
       }
     } catch (error) {
       console.error("Error handling card operation:", error);
     }
   };
+  
 
   const revealCard = (card, section) => {
     setRevealedCards((prev) => ({ ...prev, [card]: true }));
@@ -284,10 +285,10 @@ const BettingSection = () => {
       <img src={screw} alt="screw" className="absolute top-2 left-2 w-8 h-8" />
       <img src={screw} alt="screw" className="absolute top-2 right-2 w-8 h-8" />
       <div className="text-[#f3be39] text-center font-semibold">
-        <p className="text-3xl font-bold font-ramaraja ">Bets</p>
+        <p className="text-3xl font-bold font-ramaraja ">BETS</p>
         <div className="flex-col items-start justify-start">
-          <p className="text-lg">Max:{maxBet}</p>
-          <p className="text-lg">Min: {minBet}</p>
+          <p className="text-lg">MAX: {maxBet}</p>
+          <p className="text-lg">MIN: {minBet}</p>
         </div>
       </div>
     </div>

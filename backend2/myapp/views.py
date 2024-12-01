@@ -513,7 +513,13 @@ def assign_card_to_section_A(request):
             print(f"Card value fetched: {value}, Extracted card value: {card_value}")
 
             result = f"{section_id} wins" if card_value == joker else "Card assigned, no match"
-
+            if prev_id != current_id:
+                if card_value == joker:
+                    result = f"{section_id} wins"
+                    mongo_helper.db.wins.insert_one({
+                        "section_id": section_id,
+                        "result": "win"
+                    })
             # Handle a new card
             if prev_id != current_id:
                 prev_id = current_id
@@ -726,12 +732,13 @@ def assign_joker_directly(request):
 
 
 
+
 def get_client():
     username = urllib.parse.quote_plus("gurpreetkaur325612")
     password = urllib.parse.quote_plus("Init@123")
-    MONGO_URI = f"mongodb+srv://{username}:{password}@cluster0.cp6fe.mongodb.net/gaj2"  # Specify your database here
-    client = MongoClient(MONGO_URI)
+    client = MongoClient("mongodb://localhost:27017/")
     return client
+    
 @csrf_exempt
 def get_joker_value(request):
     global joker

@@ -10,6 +10,10 @@ const WinnerModal = ({ show, onClose, winner }) => {
     if (show) {
       setShowConfetti(true);
 
+      // Play the audio when modal opens
+      const audio = new Audio("/audio/winner-sound.mp3");
+      audio.play();
+
       // Close the modal after 5 seconds
       const timer = setTimeout(() => {
         onClose();
@@ -23,6 +27,9 @@ const WinnerModal = ({ show, onClose, winner }) => {
       return () => {
         clearTimeout(timer);
         clearTimeout(confettiTimer);
+        // Optional: Stop the audio when the component unmounts
+        // audio.pause();
+        // audio.currentTime = 0;
       };
     }
   }, [show, onClose]);

@@ -8,6 +8,7 @@ import b from "./assets/b.png";
 import screw from "./assets/screw.png";
 import sidelogo from "./assets/sidelogo.png";
 import { useEffect, useState } from "react";
+import WinnerModal from "./components/WinnerModal";
 
 const GridPage = () => {
   const [winPercentages, setWinPercentages] = useState({});
@@ -51,7 +52,9 @@ const Header = () => {
 
 const GameGrid = ({ winPercentages, setWinPercentages }) => {
   const [recentWins, setRecentWins] = useState([]);
-
+  const [showModal, setShowModal] = useState(false);
+  const [won, setWon] = useState(-1);
+  const [winsLength, setWinsLength] = useState(null);
   useEffect(() => {
     // Fetch data from the API
     const fetchRecentWins = async () => {
@@ -69,8 +72,16 @@ const GameGrid = ({ winPercentages, setWinPercentages }) => {
             acc[win.section_id] = (acc[win.section_id] || 0) + 1;
             return acc;
           }, {});
-
+          if (
+            winsLength !== null &&
+            winsLength < wins.length &&
+            wins.length > 0
+          ) {
+            setWon(wins[wins.length - 1].section_id);
+            handleWin();
+          }
           const totalWins = wins.length;
+          setWinsLength(totalWins);
           const percentages = {};
 
           for (const [sectionId, count] of Object.entries(sectionWins)) {
@@ -151,9 +162,23 @@ const GameGrid = ({ winPercentages, setWinPercentages }) => {
       );
     });
   };
+  const handleWin = () => {
+    setShowModal(true);
+    setTimeout(() => {
+      setWon(-1);
+      // handleCloseModal();
+      // window.location.reload();
+    }, 5000);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
 
   return (
     <div className="bg-[#971909] h-[79%] relative">
+      <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
+
       {/* <img
         src={sidelogo}
         alt="sidelogo"

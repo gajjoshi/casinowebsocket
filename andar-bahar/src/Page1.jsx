@@ -40,7 +40,7 @@ const JokerAndCards = () => {
 
         if (value) {
           setJokerValue(value);
-          console.log("joker found:,",value) // Set the joker value
+          console.log("joker found:,", value); // Set the joker value
           isJokerSet.current = true; // Mark as set
         } else {
           // Retry after a delay if value is empty
@@ -59,7 +59,6 @@ const JokerAndCards = () => {
   let hasRefreshed = false; // Persistent variable outside the function
 
   const fetchCardData = async (method, cardValue) => {
-
     try {
       const config = {
         url: "http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/",
@@ -69,7 +68,7 @@ const JokerAndCards = () => {
         },
         data: cardValue, // Example body to send with the request
       };
-  
+
       const response = await fetch(config.url, {
         method: config.method,
         headers: config.headers,
@@ -78,26 +77,27 @@ const JokerAndCards = () => {
       const responseData = await response.json();
       console.log("responseData", responseData);
       if (responseData.error === "No documents found in MongoDB") {
-        console.log("in no doc")
+        console.log("in no doc");
         if (!hasRefreshed) {
           console.error("Error: No documents found in MongoDB");
-          hasRefreshed = true; 
+          hasRefreshed = true;
           setTimeout(() => {
             window.location.reload(); // Reload after a delay
           }, 5000); // Set the flag to prevent further reloads
           // window.location.reload(); // Reload only once
         }
-      } 
+      }
       if (response.ok) {
         if (responseData.success) {
-          const { value, section_id, current_id, result, update } = responseData;
+          const { value, section_id, current_id, result, update } =
+            responseData;
           console.log("response", responseData);
-  
+
           if (update === 0) {
             setPrevId((prev) => {
               if (prev !== current_id) {
                 console.log("current_id:", current_id);
-  
+
                 if (section_id === 0) {
                   setSection0Cards((prevCards) => {
                     const updatedCards = [...prevCards, value];
@@ -111,7 +111,7 @@ const JokerAndCards = () => {
                     return updatedCards;
                   });
                 }
-  
+
                 return prev + 1;
               } else {
                 console.log("Card already read, no update.");
@@ -119,7 +119,7 @@ const JokerAndCards = () => {
               }
             });
           }
-  
+
           if (update === 1) {
             console.log("inside put");
             setPrevId((prev) => {
@@ -140,13 +140,13 @@ const JokerAndCards = () => {
                   return updatedCards;
                 });
               }
-  
+
               return prev;
             });
           }
-  
+
           console.log("result", result);
-  
+
           if (result === "0 wins") {
             setWon(0);
             handleWin();
@@ -164,13 +164,12 @@ const JokerAndCards = () => {
               window.location.reload();
             }, 5000);
           }
-        } 
+        }
       }
     } catch (error) {
       console.error("Error handling card operation:", error);
     }
   };
-  
 
   const revealCard = (card, section) => {
     setRevealedCards((prev) => ({ ...prev, [card]: true }));

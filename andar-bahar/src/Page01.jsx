@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
-import useWindowSize from "react-use/lib/useWindowSize";
-import Confetti from "react-confetti";
 // import JokerAndCards from './JokerAndCards'
 // import BetsAndStatistics from "./BetsAndStatistics"
 import Page1 from "./Page1";

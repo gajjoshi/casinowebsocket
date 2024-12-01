@@ -10,13 +10,13 @@ import WinnerModal from "./components/WinnerModal";
 const Page1 = () => {
   return (
     <div className="h-[92vh] overflow-clip ">
-    <JokerAndCards />
-    <div className="flex h-[13vh] justify-between   bg-[url('./assets/wood.png')]  shadow-lg border-2 border-yellow-600">
-      <BettingSection />
-      <Statistics />
-      <AndarBaharButtons />
+      <JokerAndCards />
+      <div className="flex h-[13vh] justify-between   bg-[url('./assets/wood.png')]  shadow-lg border-2 border-yellow-600">
+        <BettingSection />
+        <Statistics />
+        <AndarBaharButtons />
+      </div>
     </div>
-  </div>
   );
 };
 
@@ -194,13 +194,13 @@ const JokerAndCards = () => {
     setShowModal(false);
   };
   return (
-    <div className="bg-[#8F1504] p-4 border-8 border-yellow-600">
+    <div className="bg-[#8F1504] h-[79vh] p-4 border-8 border-yellow-600">
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
       <div className="flex items-center justify-center mx-auto border-b-4 border-yellow-600 pb-4 mb-4">
         <div className="text-white ml-2 font-ramaraja text-4xl font-bold">
           JOKER
         </div>
-        <div className="w-40 h-60 border-dashed ml-5 border-2 border-yellow-600 bg-[#450A0366] rounded-lg flex justify-center items-center">
+        <div className="w-40 h-[23vh] border-dashed ml-5 border-2 border-yellow-600 bg-[#450A0366] rounded-lg flex justify-center items-center">
           {jokerValue ? (
             <img
               src={`./cards/${jokerValue}.png`}
@@ -215,11 +215,11 @@ const JokerAndCards = () => {
         </div>
       </div>
 
-      <div className="flex relative h-1/2 justify-between p-4 border-b-4 border-yellow-600">
+      <div className="flex relative  justify-between p-4 border-b-4 border-yellow-600">
         <div className="text-white font-ramaraja text-6xl mt-10 font-bold mr-4">
           A
         </div>
-        <div className="border-dashed border-2 border-yellow-600 rounded-lg w-full h-60 bg-[#450A0366] flex pl-32 items-center justify-left">
+        <div className="border-dashed border-2 border-yellow-600 rounded-lg w-full h-[20vh] bg-[#450A0366] flex pl-32 items-center justify-left">
           {section0Cards.length > 0 &&
             section0Cards.map((card, index) => (
               <CardFlip
@@ -234,11 +234,11 @@ const JokerAndCards = () => {
         </div>
       </div>
 
-      <div className="flex h-1/2 justify-center p-4">
+      <div className="flex  justify-center p-4">
         <div className="text-white font-ramaraja text-6xl mt-10 font-bold mr-4">
           B
         </div>
-        <div className="border-dashed border-2 border-yellow-600 rounded-lg w-full h-60 bg-[#450A0366] flex pl-32 items-center justify-left">
+        <div className="border-dashed border-2 border-yellow-600 rounded-lg w-full h-[20vh] bg-[#450A0366] flex pl-32 items-center justify-left">
           {section1Cards.length > 0 &&
             section1Cards.map((card, index) => (
               <CardFlip

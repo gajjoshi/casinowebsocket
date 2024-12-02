@@ -178,7 +178,10 @@ const GameGrid = ({ winPercentages, setWinPercentages }) => {
   return (
     <div className="bg-[#971909] h-[79%] relative">
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
-
+      <div
+        className="absolute  inset-0 bg-contain bg-no-repeat bg-center opacity-50"
+        style={{ backgroundImage: `url(${ocean7})` }}
+      ></div>
       {/* <img
         src={sidelogo}
         alt="sidelogo"

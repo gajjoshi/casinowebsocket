@@ -24,8 +24,6 @@ const JokerAndCards = () => {
   const [jokerValue, setJokerValue] = useState(null);
   const isJokerSet = useRef(false); // Ref to track if jokerValue is set
   const [messages, setMessages] = useState([]);
-  const [jokercount, setJokercount] = useState([]);
-
 
 
   const [section0Cards, setSection0Cards] = useState([]);
@@ -39,14 +37,13 @@ const JokerAndCards = () => {
 
 
   useEffect(() => {
+    // Establish WebSocket connection
     const ws = new WebSocket("ws://localhost:6789");
 
-    
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         if (data.joker) {
-          // {console.log()}
           setJokerValue(data.joker); // Update joker value
           console.log("Updated Joker Value:", data.joker);
         } else if (data.message) {
@@ -55,51 +52,7 @@ const JokerAndCards = () => {
       } catch (error) {
         console.error("Error parsing WebSocket message:", error);
       }
-      const data = JSON.parse(event.data);
-      const { value, section_id, current_id, result, update } =data;
-      console.log("Data received from server:", data.joker[0]);
-      setJokercount(data.joker[0]);
-    
-      console.log("card value:",data.card);
-
-
-      // Handle incoming card data
-      if (data.section_id == 0) {
-        setSection0Cards((prevCards) => {
-          const updatedCards = [...prevCards, value];
-          console.log("Updated section0Cards", updatedCards);
-          return updatedCards;
-        });
-
-      }
-      if (data.section_id == 1) {
-
-        setSection1Cards((prevCards) => {
-          const updatedCards = [...prevCards, value];
-          console.log("Updated section1Cards", updatedCards);
-          return updatedCards;
-        });
-        
-      }
-      console.log("card value",value)
-      console.log("joker value",jokerValue[0])
-      if (jokerValue && value && jokerValue[0] === value[0]) {
-        console.log(`SECTION ID ${section_id} WON:`);
-        
-        setWon(section_id);
-            handleWin();
-            setTimeout(() => {
-              setWon(-1);
-              handleCloseModal();
-              windows.location.reload();
-            }, 5000);
-      }
-      
-
-        // setJokerValue(data.joker);
     };
-
-    
 
     // Handle WebSocket closure
     ws.onclose = () => {
@@ -115,6 +68,8 @@ const JokerAndCards = () => {
   }, []);
 
   let hasRefreshed = false; // Persistent variable outside the function
+
+  
 
 
 

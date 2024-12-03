@@ -614,7 +614,6 @@ def assign_card_to_section_A(request):
             }
             return JsonResponse(response)
 
-        # PUT Request: Update the latest card value
         elif request.method == "PUT":
 
             try:

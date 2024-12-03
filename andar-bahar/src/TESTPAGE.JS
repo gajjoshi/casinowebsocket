@@ -23,10 +23,6 @@ const Page1 = () => {
 const JokerAndCards = () => {
   const [jokerValue, setJokerValue] = useState(null);
   const isJokerSet = useRef(false); // Ref to track if jokerValue is set
-  const [messages, setMessages] = useState([]);
-  const [jokercount, setJokercount] = useState([]);
-
-
 
   const [section0Cards, setSection0Cards] = useState([]);
   const [section1Cards, setSection1Cards] = useState([]);
@@ -34,90 +30,160 @@ const JokerAndCards = () => {
   const [showModal, setShowModal] = useState(false);
   const [won, setWon] = useState(-1);
   const [prevId, setPrevId] = useState(0);
-  const [socket, setSocket] = useState(null);
+  const fetchJokerValue = () => {
+    // if (isJokerSet.current) return; // Stop if jokerValue is already set
 
+    axios
+      .get("http://127.0.0.1:8000/myapp/api/get_joker_value/")
+      .then((response) => {
+        const { value } = response.data.data;
 
+        if (value) {
+          setJokerValue(value);
+          console.log("joker found:,", value); // Set the joker value
+          isJokerSet.current = true; // Mark as set
+        } else {
+          // Retry after a delay if value is empty
+          setTimeout(fetchJokerValue, 1000);
+        }
+      })
+      .catch((error) => {
+        // Handle errors and retry after a delay
+        setTimeout(fetchJokerValue, 2000);
+      });
+  };
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:6789");
+    fetchJokerValue(); // Initial fetch call
+  }, []);
+  let hasRefreshed = false; // Persistent variable outside the function
 
-    
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.joker) {
-          // {console.log()}
-          setJokerValue(data.joker); // Update joker value
-          console.log("Updated Joker Value:", data.joker);
-        } else if (data.message) {
-          setMessages((prevMessages) => [...prevMessages, data.message]); // Append general messages
+  const fetchCardData = async (method, cardValue) => {
+    try {
+      const config = {
+        url: "http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/",
+        method: method,
+        headers: {
+          "Content-Type": "application/json", // Specify content type
+        },
+        data: cardValue, // Example body to send with the request
+      };
+
+      const response = await fetch(config.url, {
+        method: config.method,
+        headers: config.headers,
+        body: JSON.stringify(config.data), // Stringify the data
+      });
+      const responseData = await response.json();
+      console.log("responseData", responseData);
+      if (responseData.error === "No documents found in MongoDB") {
+        console.log("in no doc");
+        if (!hasRefreshed) {
+          console.error("Error: No documents found in MongoDB");
+          hasRefreshed = true;
+          setTimeout(() => {
+            window.location.reload(); // Reload after a delay
+          }, 5000); // Set the flag to prevent further reloads
+          // window.location.reload(); // Reload only once
         }
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
       }
-      const data = JSON.parse(event.data);
-      const { value, section_id, current_id, result, update } =data;
-      console.log("Data received from server:", data.joker[0]);
-      setJokercount(data.joker[0]);
-    
-      console.log("card value:",data.card);
+      if (response.ok) {
+        if (responseData.success) {
+          const { value, section_id, current_id, result, update } =
+            responseData;
+          console.log("response", responseData);
 
+          if (update === 0) {
+            setPrevId((prev) => {
+              if (prev !== current_id) {
+                console.log("current_id:", current_id);
 
-      // Handle incoming card data
-      if (data.section_id == 0) {
-        setSection0Cards((prevCards) => {
-          const updatedCards = [...prevCards, value];
-          console.log("Updated section0Cards", updatedCards);
-          return updatedCards;
-        });
+                if (section_id === 0) {
+                  setSection0Cards((prevCards) => {
+                    const updatedCards = [...prevCards, value];
+                    console.log("Updated section0Cards", updatedCards);
+                    return updatedCards;
+                  });
+                } else if (section_id === 1) {
+                  setSection1Cards((prevCards) => {
+                    const updatedCards = [...prevCards, value];
+                    console.log("Updated section1Cards", updatedCards);
+                    return updatedCards;
+                  });
+                }
 
-      }
-      if (data.section_id == 1) {
+                return prev + 1;
+              } else {
+                console.log("Card already read, no update.");
+                return prev;
+              }
+            });
+          }
 
-        setSection1Cards((prevCards) => {
-          const updatedCards = [...prevCards, value];
-          console.log("Updated section1Cards", updatedCards);
-          return updatedCards;
-        });
-        
-      }
-      console.log("card value",value)
-      console.log("joker value",jokerValue[0])
-      if (jokerValue && value && jokerValue[0] === value[0]) {
-        console.log(`SECTION ID ${section_id} WON:`);
-        
-        setWon(section_id);
+          if (update === 1) {
+            console.log("inside put");
+            setPrevId((prev) => {
+              if (section_id === 0) {
+                setSection0Cards((prevCards) => {
+                  const updatedCards = [...prevCards];
+                  updatedCards.pop();
+                  updatedCards.push(value);
+                  console.log("Updated section0Cards", updatedCards);
+                  return updatedCards;
+                });
+              } else if (section_id === 1) {
+                setSection1Cards((prevCards) => {
+                  const updatedCards = [...prevCards];
+                  updatedCards.pop();
+                  updatedCards.push(value);
+                  console.log("Updated section1Cards", updatedCards);
+                  return updatedCards;
+                });
+              }
+
+              return prev;
+            });
+          }
+
+          console.log("result", result);
+
+          if (result === "0 wins") {
+            setWon(0);
             handleWin();
             setTimeout(() => {
               setWon(-1);
               handleCloseModal();
-              windows.location.reload();
+              window.location.reload();
             }, 5000);
+          } else if (result === "1 wins") {
+            setWon(1);
+            handleWin();
+            setTimeout(() => {
+              setWon(-1);
+              handleCloseModal();
+              window.location.reload();
+            }, 5000);
+          }
+        }
       }
-      
+    } catch (error) {
+      console.error("Error handling card operation:", error);
+    }
+  };
 
-        // setJokerValue(data.joker);
-    };
+  const revealCard = (card, section) => {
+    setRevealedCards((prev) => ({ ...prev, [card]: true }));
+    setTimeout(() => {
+      setRevealedCards((prev) => ({ ...prev, [card]: false }));
+    }, 500);
+  };
 
-    
-
-    // Handle WebSocket closure
-    ws.onclose = () => {
-      console.log("WebSocket connection closed.");
-    };
-
-    // Save socket reference
-    setSocket(ws);
-
-    return () => {
-      ws.close();
-    };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchCardData("POST");
+    }, 500);
+    return () => clearInterval(interval);
   }, []);
-
-  let hasRefreshed = false; // Persistent variable outside the function
-
-
-
 
   const handleWin = () => {
     setShowModal(true);

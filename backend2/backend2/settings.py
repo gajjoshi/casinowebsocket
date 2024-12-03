@@ -30,7 +30,7 @@ username = urllib.parse.quote_plus("gurpreetkaur325612")
 password = urllib.parse.quote_plus("Init@123")
 
 # MongoDB connection string with encoded credentials
-MONGO_URI = "mongodb+srv://gurpreetkaur325612:Init@123@cluster0.cp6fe.mongodb.net/"
+MONGO_URI = "mongodb://localhost:27017/"
 # MONGO_URI = f"mongodb+srv://{username}:{password}@cluster0.cp6fe.mongodb.net/gaj2"  # Specify your database here
 # MONGO_URI = f"mongodb://localhost:27017/"  # Specify your database here
 # SECURITY WARNING: don't run with debug turned on in production!

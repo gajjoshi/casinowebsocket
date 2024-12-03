@@ -10,12 +10,15 @@ import Page2 from "./Page2";
 import Page01 from "./Page01";
 import Page6 from "./Page6";
 import Test from "./Test";
+import Web from "./web";
+import Newpage from "./Newpage";
+import Dealer from "./Dealer";
 const App = () => {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<GridPage />} /> {/* Display */}
-        <Route path="/dealer" element={<AndarBaharPage />} />
+        <Route path="/dealer" element={<Dealer />} />
         {/* Andar Bahar game page */}
         <Route path="/player1" element={<Page01 />} />
         <Route path="/player2" element={<Page2 />} />
@@ -24,6 +27,10 @@ const App = () => {
         <Route path="/player5" element={<Page5 />} />
         <Route path="/player6" element={<Page6 />} />
         <Route path="/test" element={<Test />} />
+        <Route path="/web" element={<Web />} />
+        <Route path="/new" element={<Newpage />} />
+
+
       </Routes>
     </Router>
   );

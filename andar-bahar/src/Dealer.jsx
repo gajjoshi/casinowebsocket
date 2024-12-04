@@ -80,7 +80,18 @@ const TopMenu = ({ sectionId }) => {
   const [showAddCardPopup, setShowAddCardPopup] = useState(false); // To toggle the popup
   const [showStartDropdown, setShowStartDropdown] = useState(false);
   const [isPushing, setIsPushing] = useState(false); // To track if pushing is active
-
+  const addPlayer = (playerName) => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      const addPlayerMessage = {
+        action: "add_player",
+        player: playerName,
+      };
+      socket.send(JSON.stringify(addPlayerMessage));
+      console.log(`Player ${playerName} added.`);
+    } else {
+      console.log("WebSocket connection is not open.");
+    }
+  };
   const cardNumbers = [
     "A",
     "2",
@@ -845,6 +856,9 @@ const ScoreAndJokerSection = ({
       <button onClick={() => addPlayer("player1")}>Add Player</button>
       <button onClick={() => addPlayer("player2")}>Add Player2</button>
       <button onClick={() => addPlayer("player3")}>Add Player3</button>
+      <button onClick={() => addPlayer("player4")}>Add Player4</button>
+      <button onClick={() => addPlayer("player5")}>Add Player5</button>
+      <button onClick={() => addPlayer("player6")}>Add Player6</button>
 
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
       {/* Score Section */}

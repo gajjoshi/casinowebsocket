@@ -7,10 +7,10 @@ import ocean7 from "./assets/ocean7.png";
 import CardFlip from "./components/CardFlip";
 import WinnerModal from "./components/WinnerModal";
 
-const Page1 = () => {
+const Page1 = ({ playerName, onStatusChange }) => {
   return (
     <div className="h-[92vh] overflow-clip ">
-      <JokerAndCards />
+      <JokerAndCards playerName={playerName} onStatusChange={onStatusChange}/>
       <div className="flex h-[13vh] justify-between   bg-[url('./assets/wood.png')]  shadow-lg border-2 border-yellow-600">
         <BettingSection />
         <Statistics />
@@ -20,7 +20,7 @@ const Page1 = () => {
   );
 };
 
-const JokerAndCards = () => {
+const JokerAndCards = ({ playerName, onStatusChange }) => {
   const [jokerValue, setJokerValue] = useState(null);
   const isJokerSet = useRef(false); // Ref to track if jokerValue is set
   const [messages, setMessages] = useState([]);
@@ -35,6 +35,7 @@ const JokerAndCards = () => {
   const [won, setWon] = useState(-1);
   const [prevId, setPrevId] = useState(0);
   const [socket, setSocket] = useState(null);
+  const [playerStatus, setPlayerStatus] = useState(0); // Default status is 0
 
 
   useEffect(() => {
@@ -44,10 +45,12 @@ const JokerAndCards = () => {
       try {
         const data = JSON.parse(event.data);
         console.log("Data received from server:", data);
-        if (data.action === "add_player") {
-          console.log("Updated player list:", data.players);
-          // Update your UI with the new player list
-        } else if (data.message) {
+        if (data.action === "player_status_updated") {
+          const status = data.players[playerName];
+          if (status !== undefined) {
+            onStatusChange(status); // Notify parent component about the player's status
+          }
+        }else if (data.message) {
           console.log(data.message);
         }
         if (data.joker) {
@@ -95,7 +98,7 @@ const JokerAndCards = () => {
     return () => {
       ws.close();
     };
-  }, []);
+  }, [playerName, onStatusChange]);
 
   const resetCollections = () => {
     if (socket && socket.readyState === WebSocket.OPEN) {

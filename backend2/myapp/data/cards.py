@@ -1,12 +1,3 @@
-# cards = [
-#     { "id": 1, "name": "TH", "image": "/cards/ffive.png" },
-#     { "id": 2, "name": "QS", "image":  "/cards/sthree.png" },
-#     { "id": 3, "name": "2H", "image": "/cards/hsix.png" },    
-#     { "id": 5, "name": "4H", "image": "/cards/hsix.png" },   
-#     { "id": 6, "name": "7H", "image":  "/cards/sthree.png" },
-#     { "id": 7, "name": "8H", "image": "/cards/hsix.png" },
-# ]
-
 cards = [
     # Hearts
     { "id": 1, "name": "2H", "image": "/cards/2H.png" },

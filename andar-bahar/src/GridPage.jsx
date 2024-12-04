@@ -1,18 +1,92 @@
 import React from "react";
-import wood from "./assets/wood.png";
+import Page1 from "./Page1"
 import ocean7 from "./assets/ocean7.png";
 import logo from "./assets/logo.png";
-import stat from "./assets/stat2.png";
 import a from "./assets/a.png";
 import b from "./assets/b.png";
 import screw from "./assets/screw.png";
-import sidelogo from "./assets/sidelogo.png";
 import { useEffect, useState } from "react";
 import WinnerModal from "./components/WinnerModal";
 
 const GridPage = () => {
   const [winPercentages, setWinPercentages] = useState({});
+  const [jokerValue, setJokerValue] = useState(null);
+  const [socket, setSocket] = useState(null);
 
+
+
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:6789");
+  
+    const setupWebSocket = (socket) => {
+      socket.onopen = () => {
+        console.log("WebSocket connected.");
+        setSocket(socket); // Save the active socket instance
+      };
+  
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log("Data received from server:", data);
+  
+          // Handle Joker updates
+          if (data.joker) {
+            setJokerValue(data.joker);
+            console.log("Updated Joker Value:", data.joker);
+          } else if (jokerValue) {
+            console.log("JOKER RESET");
+            setJokerValue(null);
+          }
+  
+          // Handle reset action
+          if (data.action === "reset_collections") {
+            console.log("Reset action received. Reloading...");
+            window.location.reload();
+          }
+  
+          // Handle other messages
+          if (data.message) {
+            setMessages((prev) => [...prev, data.message]);
+          }
+        } catch (error) {
+          console.error("Error processing WebSocket message:", error);
+        }
+      };
+  
+      socket.onclose = () => {
+        console.log("WebSocket connection closed. Attempting to reconnect...");
+        setTimeout(reconnectWebSocket, 3000); // Attempt reconnection after 3 seconds
+      };
+  
+      socket.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+    };
+  
+    // Initial WebSocket setup
+    setupWebSocket(ws);
+  
+    // Cleanup function
+    return () => {
+      console.log("Cleaning up WebSocket...");
+      ws.close();
+    };
+  }, [jokerValue]);
+  
+  const reconnectWebSocket = () => {
+    console.log("Reconnecting WebSocket...");
+    const newSocket = new WebSocket("ws://localhost:6789");
+    setupWebSocket(newSocket);
+  };
+  
+  if (jokerValue) {
+    // Render only the "Joker Value Set" message
+    return (
+      <div>
+        <Page1 />
+      </div>
+    );
+  }
   return (
     <div className="h-screen bg-yellow-400">
       <div className="bg-yellow-400 px-2 h-[75%] pt-1 text-center">
@@ -100,6 +174,7 @@ const GameGrid = ({ winPercentages, setWinPercentages }) => {
 
     return () => clearInterval(intervalId);
   }, []);
+  
 
   // Function to group consecutive tokens
   const groupConsecutiveTokens = (wins) => {

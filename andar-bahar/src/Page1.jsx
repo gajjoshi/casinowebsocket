@@ -37,103 +37,144 @@ const JokerAndCards = () => {
   const [socket, setSocket] = useState(null);
 
 
-
   useEffect(() => {
-    const connectWebSocket = () => {
-
     const ws = new WebSocket("ws://localhost:6789");
-   
 
-    ws.onopen = () => {
-      console.log("WebSocket connection established.");
-    };
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.joker) {
-          // {console.log()}
-          setJokerValue(data.joker); // Update joker value
-          console.log("Updated Joker Value:", data.joker);
+        console.log("Data received from server:", data);
+        if (data.action === "add_player") {
+          console.log("Updated player list:", data.players);
+          // Update your UI with the new player list
         } else if (data.message) {
-          setMessages((prevMessages) => [...prevMessages, data.message]); // Append general messages
+          console.log(data.message);
+        }
+        if (data.joker) {
+          setJokerValue(data.joker);
+          console.log("Updated Joker Value:", data.joker);
+
+          const firstJokerCharacter = data.joker[0];
+          console.log("First Character of Joker Value:", firstJokerCharacter);
+        }
+
+        const { value, section_id } = data;
+
+        if (section_id === 0) {
+          setSection0Cards((prevCards) => [...prevCards, value]);
+        } else if (section_id === 1) {
+          setSection1Cards((prevCards) => [...prevCards, value]);
+        }
+
+        if (data.joker && value && data.joker[0] === value[0]) {
+          console.log(`SECTION ID ${section_id} WON:`);
+          win_section(section_id)
+          console.log(section_id)
+          setWon(section_id);
+          handleWin();
+          win_section(section_id);
+
+          setTimeout(() => {
+            setWon(-1);
+            handleCloseModal();
+            setShowResetPopup(true);
+            // window.location.reload();
+          }, 7000);
         }
       } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
+        console.error("Error processing WebSocket message:", error);
       }
-      const data = JSON.parse(event.data);
-      const { value, section_id, current_id, result, update } =data;
-      console.log("Data received from server:", data);
-    
-      console.log("card value:",data.card);
-
-
-      // Handle incoming card data
-      if (data.section_id == 0) {
-        setSection0Cards((prevCards) => {
-          const updatedCards = [...prevCards, value];
-          console.log("Updated section0Cards", updatedCards);
-          return updatedCards;
-        });
-
-      }
-      if (data.section_id == 1) {
-
-        setSection1Cards((prevCards) => {
-          const updatedCards = [...prevCards, value];
-          console.log("Updated section1Cards", updatedCards);
-          return updatedCards;
-        });
-        
-      }
-      // console.log("card value",value[0])
-      // console.log("joker value",jokerValue[0])
-      if (jokerValue[0] === value[0]) {
-        console.log(`SECTION ID ${section_id} WON:`);
-        
-        setWon(section_id);
-            handleWin();
-            setTimeout(() => {
-              setWon(-1);
-              handleCloseModal();
-              window.location.reload();
-            }, 5000);
-      }
-      
-
-        // setJokerValue(data.joker);
     };
 
-    
-
-    ws.onclose = (event) => {
-      console.log(`WebSocket closed: Code=${event.code}, Reason=${event.reason}`);
-    };
-    
-
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
+    ws.onclose = () => {
+      console.log("WebSocket connection closed.");
     };
 
-    // Save socket reference
     setSocket(ws);
-    };
-    connectWebSocket();
 
     return () => {
-      if (socket) socket.close();
+      ws.close();
     };
-   
-  
   }, []);
-  const handleAddCard = () => {
+
+  const resetCollections = () => {
     if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ action: "add_card" }));
-      console.log("Add card action sent.");
+      const resetMessage = {
+        action: "reset_collections",
+      };
+      socket.send(JSON.stringify(resetMessage));
+      console.log("Collections reset.");
     } else {
-      console.error("WebSocket is not connected.");
+      console.log("WebSocket connection is not open.");
     }
   };
 
+  const addPlayer = (playerName) => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      const addPlayerMessage = {
+        action: "add_player",
+        player: playerName,
+      };
+      socket.send(JSON.stringify(addPlayerMessage));
+      console.log(`Player ${playerName} added.`);
+    } else {
+      console.log("WebSocket connection is not open.");
+    }
+  };
+  
+
+  const reconnectWebSocket = () => {
+    console.log("Reconnecting WebSocket...");
+    const newSocket = new WebSocket("ws://localhost:6789");
+  
+    newSocket.onopen = () => {
+      console.log("WebSocket reconnected.");
+      setSocket(newSocket); // Update the socket reference
+    };
+  
+    newSocket.onclose = () => {
+      console.log("WebSocket connection closed.");
+    };
+  
+    newSocket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+  
+    return newSocket;
+  };
+  
+  const win_section = (section_id) => {
+    console.log("inside win section");
+  
+    // Check if WebSocket connection is open
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      const winMessage = {
+        action: "win_section",
+        section_id: section_id,
+      };
+      socket.send(JSON.stringify(winMessage));
+      console.log("win section sent.");
+    } else if (socket && socket.readyState === WebSocket.CONNECTING) {
+      console.log("WebSocket is still connecting...");
+      setTimeout(() => win_section(section_id), 1000); // Retry after 1 second
+    } else {
+      console.log("WebSocket connection is not open or has closed.");
+      // Reconnect WebSocket
+      const newSocket = reconnectWebSocket();
+  
+      // Wait for connection to establish and then proceed
+      newSocket.onopen = () => {
+        console.log("WebSocket reconnected and now sending win section message...");
+        const winMessage = {
+          action: "win_section",
+          section_id: section_id,
+        };
+        newSocket.send(JSON.stringify(winMessage));
+        console.log("win section sent after reconnect.");
+      };
+    }
+  };
+  
   let hasRefreshed = false; // Persistent variable outside the function
 
 
@@ -148,10 +189,7 @@ const JokerAndCards = () => {
   };
   return (
     <div className="bg-[#8F1504] h-[79vh] p-4 border-8 border-yellow-600">
-      
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
-      <button onClick={handleAddCard}>Add Card</button>
-
       <div className="flex items-center justify-center mx-auto border-b-4 border-yellow-600 pb-4 mb-4">
         <div className="text-white ml-2 font-ramaraja text-4xl font-bold">
           JOKER

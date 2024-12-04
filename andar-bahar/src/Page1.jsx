@@ -37,83 +37,122 @@ const JokerAndCards = () => {
   const [socket, setSocket] = useState(null);
 
 
-
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:6789");
-
-    
+  
     ws.onmessage = (event) => {
       try {
+        // Parse incoming WebSocket message
         const data = JSON.parse(event.data);
+        console.log("Data received from server:", data);
+  
+        // Update Joker value if present
         if (data.joker) {
-          // {console.log()}
-          setJokerValue(data.joker); // Update joker value
+          setJokerValue(data.joker);
           console.log("Updated Joker Value:", data.joker);
-        } else if (data.message) {
-          setMessages((prevMessages) => [...prevMessages, data.message]); // Append general messages
+  
+          // Extract and save the first character of joker
+          const firstJokerCharacter = data.joker[0];
+          console.log("First Character of Joker Value:", firstJokerCharacter);
+          setJokercount(firstJokerCharacter);
+        }
+  
+        // Handle general messages
+        if (data.message) {
+          setMessages((prevMessages) => [...prevMessages, data.message]);
+        }
+  
+        // Destructure values from the incoming data
+        const { value, section_id, current_id } = data;
+  
+        // Log the card value
+        if (value) {
+          console.log("Card Value:", value);
+        }
+  
+        // Handle incoming card data for Section 0
+        if (section_id === 0) {
+          setSection0Cards((prevCards) => {
+            const updatedCards = [...prevCards, value];
+            console.log("Updated Section 0 Cards:", updatedCards);
+            return updatedCards;
+          });
+        }
+  
+        // Handle incoming card data for Section 1
+        if (section_id === 1) {
+          setSection1Cards((prevCards) => {
+            const updatedCards = [...prevCards, value];
+            console.log("Updated Section 1 Cards:", updatedCards);
+            return updatedCards;
+          });
+        }
+
+        
+  
+        // Check if Joker and Card values match
+        if (data.joker && value && data.joker[0] === value[0]) {
+          win_section(section_id)
+          console.log(`SECTION ID ${section_id} WON:`);
+  
+          // Update state and handle win
+          setWon(section_id);
+          handleWin();
+          resetCollections();
+  
+          // Delay reset and reload
+          setTimeout(() => {
+            setWon(-1);
+            handleCloseModal();
+            
+
+
+            window.location.reload();
+          }, 7000);
         }
       } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
+        console.error("Error processing WebSocket message:", error);
       }
-      const data = JSON.parse(event.data);
-      const { value, section_id, current_id, result, update } =data;
-      console.log("Data received from server:", data.joker[0]);
-      setJokercount(data.joker[0]);
-    
-      console.log("card value:",data.card);
-
-
-      // Handle incoming card data
-      if (data.section_id == 0) {
-        setSection0Cards((prevCards) => {
-          const updatedCards = [...prevCards, value];
-          console.log("Updated section0Cards", updatedCards);
-          return updatedCards;
-        });
-
-      }
-      if (data.section_id == 1) {
-
-        setSection1Cards((prevCards) => {
-          const updatedCards = [...prevCards, value];
-          console.log("Updated section1Cards", updatedCards);
-          return updatedCards;
-        });
-        
-      }
-      console.log("card value",value)
-      console.log("joker value",jokerValue[0])
-      if (jokerValue && value && jokerValue[0] === value[0]) {
-        console.log(`SECTION ID ${section_id} WON:`);
-        
-        setWon(section_id);
-            handleWin();
-            setTimeout(() => {
-              setWon(-1);
-              handleCloseModal();
-              windows.location.reload();
-            }, 5000);
-      }
-      
-
-        // setJokerValue(data.joker);
     };
-
-    
-
-    // Handle WebSocket closure
+  
     ws.onclose = () => {
       console.log("WebSocket connection closed.");
     };
-
-    // Save socket reference
+  
+    // Save WebSocket reference
     setSocket(ws);
-
+  
+    // Cleanup WebSocket on component unmount
     return () => {
       ws.close();
     };
   }, []);
+  
+const resetCollections = () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      const resetMessage = {
+        action: "reset_collections"
+      };
+      socket.send(JSON.stringify(resetMessage));  // Send reset request to server
+    } else {
+      console.log("WebSocket connection is not open.");
+    }
+  };
 
+
+
+
+  const win_section = (section_id) => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      const winMessage = {
+        action: "win_section",
+        section_id: section_id  // Send winning section ID to server
+      };
+      socket.send(JSON.stringify(winMessage));  // Send reset request to server
+    } else {
+      console.log("WebSocket connection is not open.");
+    }
+  };
   let hasRefreshed = false; // Persistent variable outside the function
 
 
@@ -129,6 +168,7 @@ const JokerAndCards = () => {
   return (
     <div className="bg-[#8F1504] h-[79vh] p-4 border-8 border-yellow-600">
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
+      <button onClick={resetCollections}>Reset Collections</button>
       <div className="flex items-center justify-center mx-auto border-b-4 border-yellow-600 pb-4 mb-4">
         <div className="text-white ml-2 font-ramaraja text-4xl font-bold">
           JOKER

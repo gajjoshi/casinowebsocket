@@ -851,13 +851,10 @@ const AndarBaharSection = ({
 const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards }) => {
   const [jokerValue, setJokerValue] = useState(null);
   const isJokerSet = useRef(false);
-  // console.log("Rendering ScoreAndJokerSection with sectionId:", sectionId);
-
-  // Function to fetch the joker value from the backend
+  
   const fetchJokerValue = () => {
     if (isJokerSet.current) return;
     console.log("section id for color", sectionId); // Ref to track if jokerValue is set
-    // Stop if jokerValue is already set
 
     axios
       .get("http://127.0.0.1:8000/myapp/api/get_joker_value/")

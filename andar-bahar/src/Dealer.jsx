@@ -626,19 +626,7 @@ const AndarBaharSection = ({
   const handleCloseModal = () => {
     setShowModal(false);
   };
-  const stopPush = async () => {
-    try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/stop-push/",
-        {
-          method: "POST",
-        }
-      );
-      const data = await response.json();
-    } catch (error) {
-      console.error("Error stopping the push:", error);
-    }
-  };
+
   return (
     <div className="flex flex-col w-full lg:w-3/4 bg-[#971909] p-4 shadow-lg border-2 border-[#D6AB5D]">
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
@@ -683,88 +671,124 @@ const AndarBaharSection = ({
   );
 };
 
-const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards, setSection0Cards,setSection1Cards }) => {
+const ScoreAndJokerSection = ({
+  sectionId,
+  section0Cards,
+  section1Cards,
+  setSection0Cards,
+  setSection1Cards,
+}) => {
   const [jokerValue, setJokerValue] = useState(null);
   const isJokerSet = useRef(false);
   const [socket, setSocket] = useState(null);
+  const [showResetPopup, setShowResetPopup] = useState(false); // State for showing reset popup
+  const [won, setWon] = useState(-1);
+  const [showModal, setShowModal] = useState(false);
 
+  const handleWin = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:6789");
 
-    
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log("Data received from server:", data);
+
         if (data.joker) {
-          setJokerValue(data.joker); // Update joker value
+          setJokerValue(data.joker);
           console.log("Updated Joker Value:", data.joker);
-        } else if (data.message) {
-          setMessages((prevMessages) => [...prevMessages, data.message]); // Append general messages
+
+          const firstJokerCharacter = data.joker[0];
+          console.log("First Character of Joker Value:", firstJokerCharacter);
+        }
+
+        const { value, section_id } = data;
+
+        if (section_id === 0) {
+          setSection0Cards((prevCards) => [...prevCards, value]);
+        } else if (section_id === 1) {
+          setSection1Cards((prevCards) => [...prevCards, value]);
+        }
+
+        if (data.joker && value && data.joker[0] === value[0]) {
+          console.log(`SECTION ID ${section_id} WON:`);
+          setWon(section_id);
+          handleWin();
+          win_section();
+
+          setTimeout(() => {
+            setWon(-1);
+            handleCloseModal();
+            setShowResetPopup(true);
+            // window.location.reload();
+          }, 7000);
         }
       } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
+        console.error("Error processing WebSocket message:", error);
       }
-      const data = JSON.parse(event.data);
-      const { value, section_id, current_id, result, update } =data;
-      console.log("Data received from server:", data);
-      console.log("card value:",data.card);
-
-
-      // Handle incoming card data
-      if (data.section_id == 0) {
-        setSection0Cards((prevCards) => {
-          const updatedCards = [...prevCards, value];
-          console.log("Updated section0Cards", updatedCards);
-          return updatedCards;
-        });
-
-      }
-      if (data.section_id == 1) {
-
-        setSection1Cards((prevCards) => {
-          const updatedCards = [...prevCards, value];
-          console.log("Updated section1Cards", updatedCards);
-          return updatedCards;
-        });
-        
-      }
-      if (jokerValue && value && jokerValue[0] === value[0]) {
-        console.log(`SECTION ID ${section_id} WON:`);
-        
-        setWon(section_id);
-            handleWin();
-            setTimeout(() => {
-              setWon(-1);
-              handleCloseModal();
-              windows.location.reload();
-            }, 5000);
-      }
-      
-
-        // setJokerValue(data.joker);
     };
 
-    
-
-    // Handle WebSocket closure
     ws.onclose = () => {
       console.log("WebSocket connection closed.");
     };
 
-    // Save socket reference
     setSocket(ws);
 
     return () => {
       ws.close();
     };
   }, []);
-  
 
- 
+  const resetCollections = () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      const resetMessage = {
+        action: "reset_collections",
+      };
+      socket.send(JSON.stringify(resetMessage));
+      console.log("Collections reset.");
+    } else {
+      console.log("WebSocket connection is not open.");
+    }
+  };
+
+  const win_section = () => {
+    console.log("insdie win section");
+    if (socket) {
+      const winMessage = {
+        action: "win_section",
+        // section_id: section_id,
+      };
+      socket.send(JSON.stringify(winMessage));
+      console.log("win section sent.");
+    } else {
+      console.log("WebSocket connection is not open.");
+    }
+  };
+
+  const handleResetClick = () => {
+    setShowResetPopup(true); // Show the confirmation popup
+  };
+
+  const confirmReset = () => {
+    resetCollections(); // Perform the reset
+    setShowResetPopup(false);
+    window.location.reload(); // Close the popup
+  };
+
+  const cancelReset = () => {
+    setShowResetPopup(false); // Close the popup without resetting
+  };
 
   return (
     <div className="flex flex-col justify-start w-full lg:w-1/4">
-      {/* Score */}
+      <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
+      {/* Score Section */}
       <div className="p-2">
         <div
           className={`flex justify-between items-center p-5 ${
@@ -791,6 +815,7 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards, setSect
           </div>
         </div>
       </div>
+
       {/* Joker Section */}
       <div className="h-full bg-[#971909] p-4 shadow-lg border-2 border-[#D6AB5D]">
         <div className="text-white font-ramaraja text-5xl mt-5 font-bold text-center">
@@ -800,7 +825,7 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards, setSect
           <div className="border-dashed border-2 flex justify-center items-center border-yellow-600 rounded-lg w-40 h-60 bg-[#450A0366] mt-4">
             {jokerValue ? (
               <img
-                src={`./cards/${jokerValue}.png`} // Dynamically update the joker image
+                src={`./cards/${jokerValue}.png`}
                 alt="Ocean 7 Casino"
                 className="h-52"
               />
@@ -811,9 +836,39 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards, setSect
             )}
           </div>
         </div>
+        <button
+          onClick={handleResetClick}
+          className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+        >
+          Reset Collections
+        </button>
       </div>
+
+      {/* Reset Confirmation Popup */}
+      {showResetPopup && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-4 rounded shadow-lg text-center">
+            <p className="mb-4">Are you sure you want to reset the collections?</p>
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={confirmReset}
+                className="bg-green-500 text-white px-4 py-2 rounded"
+              >
+                Yes
+              </button>
+              <button
+                onClick={cancelReset}
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
 
 export default AndarBaharPage;

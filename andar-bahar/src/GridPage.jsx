@@ -1,18 +1,118 @@
 import React from "react";
-import wood from "./assets/wood.png";
+import Page1 from "./Page1"
 import ocean7 from "./assets/ocean7.png";
 import logo from "./assets/logo.png";
-import stat from "./assets/stat2.png";
 import a from "./assets/a.png";
 import b from "./assets/b.png";
 import screw from "./assets/screw.png";
-import sidelogo from "./assets/sidelogo.png";
 import { useEffect, useState } from "react";
 import WinnerModal from "./components/WinnerModal";
 
 const GridPage = () => {
   const [winPercentages, setWinPercentages] = useState({});
+  const [jokerValue, setJokerValue] = useState(null);
+  const [socket, setSocket] = useState(null);
 
+
+
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:6789");
+  
+    ws.onmessage = (event) => {
+      try {
+        // Parse incoming WebSocket message
+        const data = JSON.parse(event.data);
+        console.log("Data received from server:", data);
+  
+        // Update Joker value if present
+        if (data.joker) {
+          setJokerValue(data.joker);
+          console.log("Updated Joker Value:", data.joker);
+  
+          // Extract and save the first character of joker
+          const firstJokerCharacter = data.joker[0];
+          console.log("First Character of Joker Value:", firstJokerCharacter);
+          setJokercount(firstJokerCharacter);
+        }
+  
+        // Handle general messages
+        if (data.message) {
+          setMessages((prevMessages) => [...prevMessages, data.message]);
+        }
+  
+        // Destructure values from the incoming data
+        const { value, section_id, current_id } = data;
+  
+        // Log the card value
+        if (value) {
+          console.log("Card Value:", value);
+        }
+  
+        // Handle incoming card data for Section 0
+        if (section_id === 0) {
+          setSection0Cards((prevCards) => {
+            const updatedCards = [...prevCards, value];
+            console.log("Updated Section 0 Cards:", updatedCards);
+            return updatedCards;
+          });
+        }
+  
+        // Handle incoming card data for Section 1
+        if (section_id === 1) {
+          setSection1Cards((prevCards) => {
+            const updatedCards = [...prevCards, value];
+            console.log("Updated Section 1 Cards:", updatedCards);
+            return updatedCards;
+          });
+        }
+
+        
+  
+        // Check if Joker and Card values match
+        if (data.joker && value && data.joker[0] === value[0]) {
+          win_section(section_id)
+          console.log(`SECTION ID ${section_id} WON:`);
+  
+          // Update state and handle win
+          setWon(section_id);
+          handleWin();
+          resetCollections();
+  
+          // Delay reset and reload
+          setTimeout(() => {
+            setWon(-1);
+            handleCloseModal();
+            
+
+
+            window.location.reload();
+          }, 7000);
+        }
+      } catch (error) {
+        console.error("Error processing WebSocket message:", error);
+      }
+    };
+  
+    ws.onclose = () => {
+      console.log("WebSocket connection closed.");
+    };
+  
+    // Save WebSocket reference
+    setSocket(ws);
+  
+    // Cleanup WebSocket on component unmount
+    return () => {
+      ws.close();
+    };
+  }, []);
+  if (jokerValue) {
+    // Render only the "Joker Value Set" message
+    return (
+      <div>
+        <Page1 />
+      </div>
+    );
+  }
   return (
     <div className="h-screen bg-yellow-400">
       <div className="bg-yellow-400 px-2 h-[75%] pt-1 text-center">
@@ -100,6 +200,7 @@ const GameGrid = ({ winPercentages, setWinPercentages }) => {
 
     return () => clearInterval(intervalId);
   }, []);
+  
 
   // Function to group consecutive tokens
   const groupConsecutiveTokens = (wins) => {

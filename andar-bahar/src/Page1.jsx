@@ -39,9 +39,14 @@ const JokerAndCards = () => {
 
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:6789");
+    const connectWebSocket = () => {
 
-    
+    const ws = new WebSocket("ws://localhost:6789");
+   
+
+    ws.onopen = () => {
+      console.log("WebSocket connection established.");
+    };
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
@@ -57,8 +62,7 @@ const JokerAndCards = () => {
       }
       const data = JSON.parse(event.data);
       const { value, section_id, current_id, result, update } =data;
-      console.log("Data received from server:", data.joker[0]);
-      setJokercount(data.joker[0]);
+      console.log("Data received from server:", data);
     
       console.log("card value:",data.card);
 
@@ -81,9 +85,9 @@ const JokerAndCards = () => {
         });
         
       }
-      console.log("card value",value)
-      console.log("joker value",jokerValue[0])
-      if (jokerValue && value && jokerValue[0] === value[0]) {
+      // console.log("card value",value[0])
+      // console.log("joker value",jokerValue[0])
+      if (jokerValue[0] === value[0]) {
         console.log(`SECTION ID ${section_id} WON:`);
         
         setWon(section_id);
@@ -91,7 +95,7 @@ const JokerAndCards = () => {
             setTimeout(() => {
               setWon(-1);
               handleCloseModal();
-              windows.location.reload();
+              window.location.reload();
             }, 5000);
       }
       
@@ -101,18 +105,34 @@ const JokerAndCards = () => {
 
     
 
-    // Handle WebSocket closure
-    ws.onclose = () => {
-      console.log("WebSocket connection closed.");
+    ws.onclose = (event) => {
+      console.log(`WebSocket closed: Code=${event.code}, Reason=${event.reason}`);
+    };
+    
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
     };
 
     // Save socket reference
     setSocket(ws);
+    };
+    connectWebSocket();
 
     return () => {
-      ws.close();
+      if (socket) socket.close();
     };
+   
+  
   }, []);
+  const handleAddCard = () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ action: "add_card" }));
+      console.log("Add card action sent.");
+    } else {
+      console.error("WebSocket is not connected.");
+    }
+  };
 
   let hasRefreshed = false; // Persistent variable outside the function
 
@@ -128,7 +148,10 @@ const JokerAndCards = () => {
   };
   return (
     <div className="bg-[#8F1504] h-[79vh] p-4 border-8 border-yellow-600">
+      
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
+      <button onClick={handleAddCard}>Add Card</button>
+
       <div className="flex items-center justify-center mx-auto border-b-4 border-yellow-600 pb-4 mb-4">
         <div className="text-white ml-2 font-ramaraja text-4xl font-bold">
           JOKER

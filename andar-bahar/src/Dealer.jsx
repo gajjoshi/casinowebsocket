@@ -689,13 +689,19 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards, setSect
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:6789");
+    const connectWebSocket = () => {
 
-    
+    const ws = new WebSocket("ws://localhost:6789");
+   
+
+    ws.onopen = () => {
+      console.log("WebSocket connection established.");
+    };
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         if (data.joker) {
+          // {console.log()}
           setJokerValue(data.joker); // Update joker value
           console.log("Updated Joker Value:", data.joker);
         } else if (data.message) {
@@ -707,6 +713,7 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards, setSect
       const data = JSON.parse(event.data);
       const { value, section_id, current_id, result, update } =data;
       console.log("Data received from server:", data);
+    
       console.log("card value:",data.card);
 
 
@@ -728,7 +735,9 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards, setSect
         });
         
       }
-      if (jokerValue && value && jokerValue[0] === value[0]) {
+      console.log("card value",value[0])
+      console.log("joker value",jokerValue[0])
+      if (jokerValue[0] === value[0]) {
         console.log(`SECTION ID ${section_id} WON:`);
         
         setWon(section_id);
@@ -736,7 +745,7 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards, setSect
             setTimeout(() => {
               setWon(-1);
               handleCloseModal();
-              windows.location.reload();
+              window.location.reload();
             }, 5000);
       }
       
@@ -746,17 +755,24 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards, setSect
 
     
 
-    // Handle WebSocket closure
-    ws.onclose = () => {
-      console.log("WebSocket connection closed.");
+    ws.onclose = (event) => {
+      console.log(`WebSocket closed: Code=${event.code}, Reason=${event.reason}`);
+    };
+    
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
     };
 
     // Save socket reference
     setSocket(ws);
+    };
+    connectWebSocket();
 
     return () => {
-      ws.close();
+      if (socket) socket.close();
     };
+  
   }, []);
   
 

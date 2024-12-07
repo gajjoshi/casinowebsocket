@@ -782,6 +782,19 @@ const ScoreAndJokerSection = ({
       console.log("WebSocket connection is not open.");
     }
   };
+  const addCard = (cardValue) => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      const addCardMessage = {
+        action: "add_card",
+        value: cardValue,
+      };
+      socket.send(JSON.stringify(addCardMessage));
+      console.log(`Card ${cardValue} added.`);
+    } else {
+      console.log("WebSocket connection is not open.");
+    }
+  };
+  
   
 
   const reconnectWebSocket = () => {
@@ -850,6 +863,18 @@ const ScoreAndJokerSection = ({
   const cancelReset = () => {
     setShowResetPopup(false); // Close the popup without resetting
   };
+  const [cardValue, setCardValue] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (cardValue.trim()) {
+      addCard(cardValue);
+      setCardValue(""); // Clear input field after sending
+    } else {
+      console.log("Please enter a valid card value.");
+    }
+  };
+
 
   return (
     <div className="flex flex-col justify-start w-full lg:w-1/4">
@@ -859,6 +884,17 @@ const ScoreAndJokerSection = ({
       <button onClick={() => addPlayer("player4")}>Add Player4</button>
       <button onClick={() => addPlayer("player5")}>Add Player5</button>
       <button onClick={() => addPlayer("player6")}>Add Player6</button>
+      <div>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={cardValue}
+          onChange={(e) => setCardValue(e.target.value)}
+          placeholder="Enter card value"
+        />
+        <button type="submit">Add Card</button>
+      </form>
+    </div>
 
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
       {/* Score Section */}

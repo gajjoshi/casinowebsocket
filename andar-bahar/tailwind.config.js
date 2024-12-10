@@ -12,6 +12,15 @@ export default {
         questrial: ["Questrial", "sans-serif"],
         ramaraja: ["Ramaraja", "serif"],
       },
+      keyframes: {
+        glow: {
+          '0%, 100%': { opacity: '0.50' }, // Start and end at 50% opacity
+          '50%': { opacity: '0.1' }, // Middle of animation at 65% opacity
+        },
+      },
+    },
+    animation: {
+      glow: 'glow 3s ease-in-out infinite', // 3 seconds, smooth, infinite
     },
   },
   plugins: [],

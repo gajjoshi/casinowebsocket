@@ -111,7 +111,7 @@ const GridPage = () => {
 const Header = () => {
   return (
     <div className="flex justify-between items-center py-5 px-10  bg-[url('./assets/wood.png')] relative font-questrial">
-      <img src={ocean7} alt="ocean7" className="w-12 h-12 p-1" />
+      <img src={ocean7} alt="ocean7" className="w-20 h-20 p-1" />
       <img
         src={logo}
         alt="logo"
@@ -251,23 +251,13 @@ const GameGrid = ({ winPercentages, setWinPercentages }) => {
   };
 
   return (
-    <div className="bg-[#971909] h-[79%] relative">
+    <div className="bg-[#971909] h-[83%] relative   ">
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
       <div
-        className="absolute  inset-0 bg-contain bg-no-repeat bg-center opacity-50"
+        className="absolute  inset-0 bg-contain bg-no-repeat bg-center opacity-50 animate-glow"
         style={{ backgroundImage: `url(${ocean7})` }}
       ></div>
-      {/* <img
-        src={sidelogo}
-        alt="sidelogo"
-        className="absolute left-0 top-1/2 transform -translate-y-1/2 h-[80%] ml-[-30px]"
-      />
-      <img
-        src={sidelogo}
-        alt="sidelogo"
-        className="absolute right-0 top-1/2 transform -translate-y-1/2 h-[80%]"
-      /> */}
-      <div className="w-full  max-w-full mx-auto p-4">
+      <div className="w-full  max-w-full mx-auto p-4 relative z-10">
         {/* Centering the grid and adjusting the gaps */}
         <div className="grid grid-cols-10 gap-x-8 gap-y-4 justify-center ">
           {renderGrid()}
@@ -306,10 +296,10 @@ const BettingSection = () => {
       <img src={screw} alt="screw" className="absolute top-2 left-2 w-8 h-8" />
       <img src={screw} alt="screw" className="absolute top-2 right-2 w-8 h-8" />
       <div className="text-[#f3be39] text-center font-semibold">
-        <p className="text-3xl font-bold font-ramaraja ">Bets</p>
+        <p className="text-3xl font-bold font-ramaraja ">BETS</p>
         <div className="flex-col items-start justify-start">
-          <p className="text-lg">Max:{maxBet}</p>
-          <p className="text-lg">Min: {minBet}</p>
+          <p className="text-3xl font-ramaraja">MAX : {maxBet}</p>
+          <p className="text-3xl font-ramaraja">MIN : {minBet}</p>
         </div>
       </div>
     </div>
@@ -317,59 +307,39 @@ const BettingSection = () => {
 };
 const Statistics = ({ winPercentages }) => {
   return (
-    <div className="  text-[#f3be39] p-4 border-2 border-gray-400 shadow-lg w-2/4">
-      <div className="text-center font-ramaraja text-4xl font-bold ">
-        STATISTICS
-      </div>
-      {/* <div className="flex relative justify-center h-16 items-center space-x-2">
-        <span className="absolute text-xs  top-2 left-40">
-          {winPercentages[1]}
-        </span>
-        <img
-          src={stat}
-          alt="stat"
-          className="w-[70%]  mt-[-10px]"
-          // className="absolute left-1/2  transform -translate-x-1/2  h-24 mx-auto"
-        />
-        <span className="absolute text-xs  top-2 right-40">
-          {winPercentages[1]}
-        </span>
-      </div> */}
-      <div className="flex justify-center items-center overflow-clip -mt-5 space-x-2 bg-brown-800 p-4 rounded-lg">
-        {/* A Coin Side */}
-        <div className="flex justify-center items-center w-[70%] relative">
-          <div className="absolute -mt-2 ml-2 left-0 w-16 h-20 overflow-clip">
-            <img src={a} alt="a" className="w-16 " />
-          </div>
-          <div
-            style={{ width: `${winPercentages[0] - 20}%` }}
-            className="flex w-[30%] border-4 border-yellow-400  items-center space-x-2 bg-red-700 rounded px-2 py-1"
-          >
-            <div className="flex items-center space-x-1">
-              <span className="text-yellow-400 font-semibold">
-                {Math.round(winPercentages[0])}
-              </span>
-            </div>
-          </div>
-
-          {/* B Coin Side */}
-          <div className="absolute mr-2 -mt-2 right-0 w-16 h-20 pt-1 overflow-clip">
-            <img src={b} alt="b" className="w-16 " />
-          </div>
-          <div
-            style={{ width: `${winPercentages[1] - 20}%` }}
-            className="flex w-[30%] border-4 border-yellow-400 justify-end items-center space-x-2 bg-blue-700 rounded px-2 py-1"
-          >
-            <div className="flex items-center justify-end space-x-1">
-              <div className="text-yellow-400  font-semibold">
-                {Math.round(winPercentages[1])}
-              </div>
-            </div>
-          </div>
+    <div className="text-[#f3be39] p-4 border-2 border-gray-400 shadow-lg w-3/4">
+    <div className="text-center font-ramaraja text-4xl font-bold">STATISTICS</div>
+    <div className="flex justify-center items-center -mt-5 space-x-2 bg-brown-800 p-4 rounded-lg">
+      {/* A Coin Side */}
+      <div className="flex justify-center items-center w-full relative">
+        <div className="absolute -mt-2 left-0 w-16 h-20 overflow-hidden">
+          <img src={a} alt="a" className="w-16" />
+        </div>
+        <div
+          style={{ width: `${winPercentages[0]}%` }}
+          className="flex border-4 border-yellow-400 items-center space-x-2 bg-red-700 rounded px-2 py-1 ml-20"
+        >
+          <span className="text-yellow-400 font-semibold">
+            {Math.round(winPercentages[0])}%
+          </span>
+        </div>
+        {/* Spacer */}
+        <div className="w-4"></div>
+        {/* B Coin Side */}
+        <div
+          style={{ width: `${winPercentages[1]}%` }}
+          className="flex border-4 border-yellow-400 justify-end items-center mr-20 bg-blue-700 rounded px-2 py-1"
+        >
+          <span className="text-yellow-400 font-semibold">
+            {Math.round(winPercentages[1])}%
+          </span>
+        </div>
+        <div className="absolute -mt-2 right-0 w-16 h-20 overflow-hidden">
+          <img src={b} alt="b" className="w-16" />
         </div>
       </div>
     </div>
-  );
+  </div>  );
 };
 
 const AndarBaharButtons = () => {

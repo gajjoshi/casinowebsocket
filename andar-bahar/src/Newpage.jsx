@@ -38,7 +38,7 @@ const JokerAndCards = () => {
 
   useEffect(() => {
     // Establish WebSocket connection
-    const ws = new WebSocket("ws://localhost:6789");
+    const ws = new WebSocket("ws://192.168.1.100:6789");
 
     ws.onmessage = (event) => {
       try {

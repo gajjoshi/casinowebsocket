@@ -39,7 +39,7 @@ const JokerAndCards = ({ playerName, onStatusChange }) => {
 
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:6789");
+    const ws = new WebSocket("ws://192.168.1.100:6789");
 
     ws.onmessage = (event) => {
       try {
@@ -128,7 +128,7 @@ const JokerAndCards = ({ playerName, onStatusChange }) => {
 
   const reconnectWebSocket = () => {
     console.log("Reconnecting WebSocket...");
-    const newSocket = new WebSocket("ws://localhost:6789");
+    const newSocket = new WebSocket("ws://192.168.1.100:6789");
   
     newSocket.onopen = () => {
       console.log("WebSocket reconnected.");

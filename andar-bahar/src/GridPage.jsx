@@ -16,7 +16,7 @@ const GridPage = () => {
 
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:6789");
+    const ws = new WebSocket("ws://192.168.1.100:6789");
   
     const setupWebSocket = (socket) => {
       socket.onopen = () => {
@@ -75,7 +75,7 @@ const GridPage = () => {
   
   const reconnectWebSocket = () => {
     console.log("Reconnecting WebSocket...");
-    const newSocket = new WebSocket("ws://localhost:6789");
+    const newSocket = new WebSocket("ws://192.168.1.100:6789");
     setupWebSocket(newSocket);
   };
   

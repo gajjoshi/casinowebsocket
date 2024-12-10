@@ -180,6 +180,7 @@ const AndarBaharPage = () => {
 
   return (
     <div className="min-h-screen bg-[#450A03] ">
+      
       <WinnerModal show={showModal} onClose={handleCloseModal} winner={won} />
 
       <TopMenu

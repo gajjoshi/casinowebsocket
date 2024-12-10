@@ -117,7 +117,7 @@ const TopMenu = ({ sectionId }) => {
 
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/add-card/",
+        "http://192.168.1.100:8000/myapp/api/add-card/",
         {
           method: "POST", // Use POST to send data
           headers: {
@@ -179,7 +179,7 @@ const TopMenu = ({ sectionId }) => {
   const updateCard = async () => {
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/myapp/api/update_last_card/"
+        "http://192.168.1.100:8000/myapp/api/update_last_card/"
       );
       if (response.data) {
         const updatedCard = response.data.value; // New card value
@@ -213,7 +213,7 @@ const TopMenu = ({ sectionId }) => {
   // const startPush = async () => {
   //   try {
   //     const response = await fetch(
-  //       "http://127.0.0.1:8000/myapp/api/start-push/",
+  //       "http://192.168.1.100:8000/myapp/api/start-push/",
   //       {
   //         method: "POST",
   //       }
@@ -229,7 +229,7 @@ const TopMenu = ({ sectionId }) => {
   const stopPush = async () => {
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/stop_push/",
+        "http://192.168.1.100:8000/myapp/api/stop_push/",
         {
           method: "POST",
         }
@@ -246,7 +246,7 @@ const TopMenu = ({ sectionId }) => {
   const startPush = async () => {
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/start_push/",
+        "http://192.168.1.100:8000/myapp/api/start_push/",
         {
           method: "POST",
         }
@@ -265,7 +265,7 @@ const TopMenu = ({ sectionId }) => {
   const pushCards = async () => {
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/push_to_mongo/",
+        "http://192.168.1.100:8000/myapp/api/push_to_mongo/",
         {
           method: "POST",
         }
@@ -282,7 +282,7 @@ const TopMenu = ({ sectionId }) => {
   const handleReset = async () => {
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/myapp/api/reset_collections/"
+        "http://192.168.1.100:8000/myapp/api/reset_collections/"
       );
 
       if (response.status === 200) {

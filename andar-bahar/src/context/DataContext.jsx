@@ -8,7 +8,7 @@ export const DataProvider = ({ children }) => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/myapp/api/reset_collections/');
+      const response = await fetch('http://192.168.1.100:8000/myapp/api/reset_collections/');
       const result = await response.json();
       setData(result);
     } catch (error) {

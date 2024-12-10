@@ -9,7 +9,7 @@ const CardSections = () => {
     // Function to fetch card state every 5 seconds
     const fetchCardState = async () => {
         try {
-            const response = await fetch('http://127.0.0.1:8000/myapp/api/update_card_state/', {
+            const response = await fetch('http://192.168.1.100:8000/myapp/api/update_card_state/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

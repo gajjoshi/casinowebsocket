@@ -7,7 +7,7 @@ const BetPopUp = ({ setShowBet }) => {
 
   const fetchBets = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/myapp/api/get-bet/");
+      const response = await fetch("http://192.168.1.100:8000/myapp/api/get-bet/");
       const data = await response.json();
       if (response.ok) {
         setCurrentBets(data);
@@ -19,7 +19,7 @@ const BetPopUp = ({ setShowBet }) => {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/myapp/api/set-bet/", {
+      const response = await fetch("http://192.168.1.100:8000/myapp/api/set-bet/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -34,7 +34,7 @@ const AndarBaharPage = () => {
   const stopPush = async () => {
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/stop_push/",
+        "http://192.168.1.100:8000/myapp/api/stop_push/",
         {
           method: "POST",
         }
@@ -53,7 +53,7 @@ const AndarBaharPage = () => {
   const handleReset = async () => {
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/myapp/api/reset_collections/"
+        "http://192.168.1.100:8000/myapp/api/reset_collections/"
       );
 
       if (response.status === 200) {
@@ -69,11 +69,11 @@ const AndarBaharPage = () => {
   };
   const fetchCardData = async (method, cardValue) => {
     try {
-      const url = "http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/";
+      const url = "http://192.168.1.100:8000/myapp/api/assign_card_to_section_A/";
       // console.log("cardValue2", JSON.stringify(cardValue));
 
       const config = {
-        url: "http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/",
+        url: "http://192.168.1.100:8000/myapp/api/assign_card_to_section_A/",
         method: method,
         headers: {
           "Content-Type": "application/json", // Specify content type
@@ -246,7 +246,7 @@ const TopMenu = ({ sectionId, fetchCardData }) => {
 
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/add-card/",
+        "http://192.168.1.100:8000/myapp/api/add-card/",
         {
           method: "POST", // Use POST to send data
           headers: {
@@ -308,7 +308,7 @@ const TopMenu = ({ sectionId, fetchCardData }) => {
   const updateCard = async () => {
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/myapp/api/update_last_card/"
+        "http://192.168.1.100:8000/myapp/api/update_last_card/"
       );
       if (response.data) {
         const updatedCard = response.data.value; // New card value
@@ -342,7 +342,7 @@ const TopMenu = ({ sectionId, fetchCardData }) => {
   // const startPush = async () => {
   //   try {
   //     const response = await fetch(
-  //       "http://127.0.0.1:8000/myapp/api/start-push/",
+  //       "http://192.168.1.100:8000/myapp/api/start-push/",
   //       {
   //         method: "POST",
   //       }
@@ -358,7 +358,7 @@ const TopMenu = ({ sectionId, fetchCardData }) => {
   const stopPush = async () => {
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/stop_push/",
+        "http://192.168.1.100:8000/myapp/api/stop_push/",
         {
           method: "POST",
         }
@@ -375,7 +375,7 @@ const TopMenu = ({ sectionId, fetchCardData }) => {
   const startPush = async () => {
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/start_push/",
+        "http://192.168.1.100:8000/myapp/api/start_push/",
         {
           method: "POST",
         }
@@ -394,7 +394,7 @@ const TopMenu = ({ sectionId, fetchCardData }) => {
   const pushCards = async () => {
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/push_to_mongo/",
+        "http://192.168.1.100:8000/myapp/api/push_to_mongo/",
         {
           method: "POST",
         }
@@ -411,7 +411,7 @@ const TopMenu = ({ sectionId, fetchCardData }) => {
   const handleReset = async () => {
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/myapp/api/reset_collections/"
+        "http://192.168.1.100:8000/myapp/api/reset_collections/"
       );
 
       if (response.status === 200) {
@@ -432,7 +432,7 @@ const TopMenu = ({ sectionId, fetchCardData }) => {
     const fetchCurrentPlayers = async () => {
       try {
         const response = await fetch(
-          "http://127.0.0.1:8000/myapp/api/player-round/"
+          "http://192.168.1.100:8000/myapp/api/player-round/"
         );
         const data = await response.json();
         setCurrentPlayers(data.current_players);
@@ -794,7 +794,7 @@ const AndarBaharSection = ({
   const stopPush = async () => {
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/myapp/api/stop-push/",
+        "http://192.168.1.100:8000/myapp/api/stop-push/",
         {
           method: "POST",
         }
@@ -857,7 +857,7 @@ const ScoreAndJokerSection = ({ sectionId, section0Cards, section1Cards }) => {
     console.log("section id for color", sectionId); // Ref to track if jokerValue is set
 
     axios
-      .get("http://127.0.0.1:8000/myapp/api/get_joker_value/")
+      .get("http://192.168.1.100:8000/myapp/api/get_joker_value/")
       .then((response) => {
         const { value } = response.data.data;
 

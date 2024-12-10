@@ -17,7 +17,7 @@ const Dealer = () => {
     const fetchCardState = async () => {
         setIsLoading(true);  // Set loading to true at the start of the request
         try {
-            const response = await fetch('http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/', {
+            const response = await fetch('http://192.168.1.100:8000/myapp/api/assign_card_to_section_A/', {
                 method: 'POST',  // Verify that the API expects a POST request
                 headers: {
                     'Content-Type': 'application/json',

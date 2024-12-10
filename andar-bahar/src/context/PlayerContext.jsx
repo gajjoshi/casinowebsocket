@@ -10,7 +10,7 @@ export const PlayerProvider = ({ children }) => {
   // Function to fetch the current players list
   const fetchCurrentPlayers = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/myapp/api/player-round/");
+      const response = await axios.get("http://192.168.1.100:8000/myapp/api/player-round/");
       setCurrentPlayers(response.data.current_players || []);
     } catch (error) {
       console.error("Error fetching player data:", error);

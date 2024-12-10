@@ -34,7 +34,7 @@ const JokerAndCards = () => {
     // if (isJokerSet.current) return; // Stop if jokerValue is already set
 
     axios
-      .get("http://127.0.0.1:8000/myapp/api/get_joker_value/")
+      .get("http://192.168.1.100:8000/myapp/api/get_joker_value/")
       .then((response) => {
         const { value } = response.data.data;
 
@@ -61,7 +61,7 @@ const JokerAndCards = () => {
   const fetchCardData = async (method, cardValue) => {
     try {
       const config = {
-        url: "http://127.0.0.1:8000/myapp/api/assign_card_to_section_A/",
+        url: "http://192.168.1.100:8000/myapp/api/assign_card_to_section_A/",
         method: method,
         headers: {
           "Content-Type": "application/json", // Specify content type
@@ -267,7 +267,7 @@ const BettingSection = () => {
   }, []);
   const getBet = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/myapp/api/get-bet/");
+      const response = await fetch("http://192.168.1.100:8000/myapp/api/get-bet/");
       const data = await response.json();
       if (response.ok) {
         setMinBet(data.min_bet);
@@ -303,7 +303,7 @@ const Statistics = () => {
     const fetchRecentWins = async () => {
       try {
         const response = await fetch(
-          "http://127.0.0.1:8000/myapp/api/get_recent_wins/"
+          "http://192.168.1.100:8000/myapp/api/get_recent_wins/"
         );
         const data = await response.json();
 

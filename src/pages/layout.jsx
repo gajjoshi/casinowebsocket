@@ -46,7 +46,7 @@ const GameLayout = () => {
     const handleReveal = async (id) => {
         setIsLoading(true); // Show loading while revealing a card
         try {
-            const response = await fetch(`http://127.0.0.1:8000/myapp/api/assign_card_to_section3/${id}/`, {
+            const response = await fetch(`http://192.168.1.100:8000/myapp/api/assign_card_to_section3/${id}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

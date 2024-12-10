@@ -11,7 +11,7 @@ const PlayerSelectionPopup = ({ setShowPopup }) => {
   // const fetchCurrentPlayers = async () => {
   //   try {
   //     const response = await axios.get(
-  //       "http://127.0.0.1:8000/myapp/api/player-round/"
+  //       "http://192.168.1.100:8000/myapp/api/player-round/"
   //     );
   //     setCurrentPlayers(response.data.current_players);
   //   } catch (error) {
@@ -22,7 +22,7 @@ const PlayerSelectionPopup = ({ setShowPopup }) => {
 
   const submitPlayers = async () => {
     try {
-      await axios.post("http://127.0.0.1:8000/myapp/api/player-round/", {
+      await axios.post("http://192.168.1.100:8000/myapp/api/player-round/", {
         players: selectedPlayers,
       });
       setShowPopup(false);

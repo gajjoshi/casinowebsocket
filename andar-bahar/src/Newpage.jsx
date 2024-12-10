@@ -156,7 +156,7 @@ const BettingSection = () => {
   }, []);
   const getBet = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/myapp/api/get-bet/");
+      const response = await fetch("http://192.168.1.100:8000/myapp/api/get-bet/");
       const data = await response.json();
       if (response.ok) {
         setMinBet(data.min_bet);
@@ -192,7 +192,7 @@ const Statistics = () => {
     const fetchRecentWins = async () => {
       try {
         const response = await fetch(
-          "http://127.0.0.1:8000/myapp/api/get_recent_wins/"
+          "http://192.168.1.100:8000/myapp/api/get_recent_wins/"
         );
         const data = await response.json();
 
